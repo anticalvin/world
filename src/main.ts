@@ -63,6 +63,7 @@ s.add(
 const grid = new T.GridHelper(50, 50, 0xff2e9a, 0x35f0ff);
 grid.visible = false;
 s.add(grid);
+let physicsReady = false;
 let cfg: AvatarConfig = loadConfig(),
   model: T.Object3D = builtIn(cfg),
   an = new AvatarAnimator(model),
@@ -140,7 +141,7 @@ chatPanel.setAttribute("aria-label", "Lounge chat");
 networkStatus.textContent = "OFFLINE · LOCAL SESSION";
 networkStatus.id = "network-status";
 chatLog.setAttribute("aria-live", "polite");
-chatLog.style.cssText = "display:block;min-height:22px";
+chatLog.style.cssText = "display:block;min-height:22px;max-height:150px;overflow-y:auto;white-space:pre-wrap";
 chatText.maxLength = 120;
 chatText.placeholder = "Say something";
 chatText.setAttribute("aria-label", "Lounge chat");
@@ -202,8 +203,10 @@ function menu() {
   studio.onclick = openStudio;
   const play = document.createElement("button");
   play.className = "btn primary";
-  play.textContent = "JACK IN";
-  play.onclick = () => start(w);
+  play.id = "jack-in";
+  play.textContent = physicsReady ? "JACK IN" : "INITIALIZING PHYSICS…";
+  play.disabled = !physicsReady;
+  play.onclick = () => { if (physicsReady) start(w); };
   boot.append(h, list, studio, play);
 }
 function openStudio() {
@@ -314,6 +317,8 @@ function openStudio() {
   boot.append(h, name, grid, random, save, cancel, saved, file);
 }
 menu();
+const playerNames = new Map<string, string>();
+const recentChat: string[] = [];
 const remotes = new Map<
   string,
   { root: T.Group; target: T.Vector3; yaw: number }
@@ -341,6 +346,7 @@ function tag(text: string) {
   return q;
 }
 function upsertRemote(p: LoungePlayer) {
+  playerNames.set(p.id, p.name);
   if (loungeId === p.id) return;
   let remote = remotes.get(p.id);
   const remoteConfig = sanitizeAvatar({
@@ -368,6 +374,7 @@ function upsertRemote(p: LoungePlayer) {
     };
 }
 function removeRemote(id: string) {
+  playerNames.delete(id);
   const remote = remotes.get(id);
   if (remote) {
     s.remove(remote.root);
@@ -381,6 +388,7 @@ function removeRemote(id: string) {
 }
 function clearRemotes() {
   for (const id of remotes.keys()) removeRemote(id);
+  playerNames.clear();
 }
 let loungeId = "";
 const lounge = new LoungeClient({
@@ -389,7 +397,11 @@ const lounge = new LoungeClient({
   remove: removeRemote,
   chat: (m) => {
     if (!muted.has(m.id)) {
-      chatLog.textContent = `${m.id === loungeId ? "YOU" : "WANDERER"}: ${m.text}`;
+      const sender = m.id === loungeId ? "YOU" : playerNames.get(m.id) || "PLAYER";
+      recentChat.push(`${sender}: ${m.text}`);
+      if (recentChat.length > 20) recentChat.shift();
+      chatLog.textContent = recentChat.join("\n");
+      chatLog.scrollTop = chatLog.scrollHeight;
     }
   },
   status: (_s, detail) => {
@@ -399,6 +411,17 @@ const lounge = new LoungeClient({
 });
 const muted = new Set<string>();
 const hero = new RapierCharacter();
+const physicsLoad = hero.ready.then(() => {
+  physicsReady = true;
+  const jackIn = document.querySelector<HTMLButtonElement>("#jack-in");
+  if (jackIn) { jackIn.disabled = false; jackIn.textContent = "JACK IN"; }
+}).catch((error) => {
+  console.error("AWAKEN physics initialization failed", error);
+  const jackIn = document.querySelector<HTMLButtonElement>("#jack-in");
+  if (jackIn) jackIn.textContent = "PHYSICS UNAVAILABLE";
+});
+void physicsLoad;
+void (async () => {
 await hero.ready;
 try {
   if (cfg.imported) {
@@ -415,12 +438,31 @@ try {
   cfg.imported = undefined;
   saveConfig(cfg);
 }
+})().catch(error => console.error("AWAKEN avatar import initialization failed", error));
 const mat = (c: number) =>
   new T.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 1 });
 let visual: T.Group | undefined;
+function disposeGroup(root: T.Object3D) {
+  const geometries = new Set<T.BufferGeometry>();
+  const materials = new Set<T.Material>();
+  root.traverse(o => {
+    if (!(o instanceof T.Mesh)) return;
+    geometries.add(o.geometry);
+    for (const m of Array.isArray(o.material) ? o.material : [o.material]) materials.add(m);
+  });
+  for (const geometry of geometries) geometry.dispose();
+  for (const material of materials) material.dispose();
+}
 function art(x: WorldManifest) {
-  if (visual) s.remove(visual);
-  for (const o of objects) s.remove(o);
+  if (visual) { s.remove(visual); disposeGroup(visual); }
+  for (const o of objects) {
+    s.remove(o);
+    if (o.name.startsWith("portal-")) {
+      o.geometry.dispose();
+      const materials = Array.isArray(o.material) ? o.material : [o.material];
+      for (const material of materials) material.dispose();
+    }
+  }
   objects = [];
   visual = createWorldScene(x.id);
   visual.traverse((o) => {
@@ -448,6 +490,7 @@ function art(x: WorldManifest) {
 }
 function start(x: WorldManifest, spawn?: string) {
   if (!validateManifest(x)) throw Error("Invalid manifest");
+  if (!physicsReady) return;
   active = true;
   boot.style.display = "none";
   hud.style.display = "block";
