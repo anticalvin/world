@@ -1,0 +1,55 @@
+name: Build and publish AWAKEN to Pages docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'index.html'
+      - 'vite.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tests/**'
+      - '.github/workflows/build-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: awaken-pages-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Typecheck and build into docs
+        run: npm run build
+      - name: Unit tests
+        run: npm test
+      - name: Record deployed source revision
+        run: |
+          printf '{"sourceCommit":"%s","builtAt":"%s"}\n' "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > docs/version.json
+      - name: Commit freshly built site to Pages source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f docs/index.html docs/assets docs/version.json
+          if git diff --cached --quiet; then
+            echo "No changed site output"
+          else
+            git commit -m "build(pages): publish source ${GITHUB_SHA::12} [skip ci]"
+            git push origin HEAD:main
+          fi
