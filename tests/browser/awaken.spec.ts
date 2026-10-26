@@ -77,3 +77,15 @@ test("two real browser clients meet, move, chat, disconnect and reconnect", asyn
   await first.close();
   await second.close();
 });
+
+test("Avatar Studio saves a wardrobe preset", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "AVATAR STUDIO" }).click();
+  await expect(
+    page.getByRole("heading", { name: "AVATAR STUDIO" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "crown" }).click();
+  await page.getByRole("button", { name: "SAVE LOOK" }).click();
+  await expect(page.getByRole("heading", { name: "AWAKEN" })).toBeVisible();
+  await page.screenshot({ path: "test-results/avatar-studio.png" });
+});

@@ -1,8 +1,10 @@
 import { Client, type Room } from "colyseus.js";
+import type { AvatarAppearance } from "../avatar/avatar";
 
 export type LoungeProfile = {
   name: string;
   style: "geisha" | "ronin" | "ghost" | "fox";
+  appearance?: AvatarAppearance;
 };
 export type LoungePlayer = LoungeProfile & {
   id: string;
@@ -60,12 +62,23 @@ export class LoungeClient {
       this.attempt = 0;
       this.handlers.self(room.sessionId);
       this.handlers.status("connected", "CONNECTED · LIVE LOUNGE");
+      const decode = (player: any): LoungePlayer => ({
+        ...player,
+        appearance:
+          typeof player.appearance === "string"
+            ? JSON.parse(player.appearance || "{}")
+            : player.appearance,
+      });
       room.onMessage("presence", (players: LoungePlayer[]) => {
         for (const player of players)
-          if (player.id !== room.sessionId) this.handlers.player(player);
+          if (player.id !== room.sessionId)
+            this.handlers.player(decode(player));
       });
       room.onMessage("player", (player: LoungePlayer) => {
-        if (player.id !== room.sessionId) this.handlers.player(player);
+        if (player.id !== room.sessionId) this.handlers.player(decode(player));
+      });
+      room.onMessage("appearance", (player: LoungePlayer) => {
+        if (player.id !== room.sessionId) this.handlers.player(decode(player));
       });
       room.onMessage("remove", ({ id }: { id: string }) =>
         this.handlers.remove(id),
@@ -97,6 +110,10 @@ export class LoungeClient {
 
   sendChat(text: string) {
     this.room?.send("chat", { text });
+  }
+
+  sendAppearance(appearance: AvatarAppearance) {
+    this.room?.send("appearance", { appearance });
   }
 
   disconnect() {

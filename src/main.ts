@@ -10,6 +10,20 @@ import {
   parseGlb,
   saveConfig,
   saveFile,
+  appearanceOf,
+  randomAvatar,
+  sanitizeAvatar,
+  savePreset,
+  presets,
+  BODY,
+  HATS,
+  HAIR,
+  TOPS,
+  PANTS,
+  SHOES,
+  GLASSES,
+  MASKS,
+  BACKPACKS,
   type AvatarConfig,
 } from "./avatar/avatar";
 import { AvatarAnimator } from "./avatar/animation";
@@ -164,26 +178,104 @@ function menu() {
     };
     list.append(b);
   }
-  const details = document.createElement("details");
-  details.innerHTML = "<summary>AVATAR / " + cfg.name + "</summary>";
+  const studio = document.createElement("button");
+  studio.className = "btn primary";
+  studio.textContent = "AVATAR STUDIO";
+  studio.onclick = openStudio;
+  const play = document.createElement("button");
+  play.className = "btn primary";
+  play.textContent = "JACK IN";
+  play.onclick = () => start(w);
+  boot.append(h, list, studio, play);
+}
+function openStudio() {
+  const draft = { ...cfg };
+  boot.replaceChildren();
+  const h = document.createElement("h1");
+  h.textContent = "AVATAR STUDIO";
   const name = document.createElement("input");
-  name.value = cfg.name;
-  name.oninput = () => {
-    cfg.name = name.value.toUpperCase();
-    saveConfig(cfg);
+  name.value = draft.name;
+  name.setAttribute("aria-label", "Display name");
+  name.oninput = () => (draft.name = name.value.toUpperCase());
+  const grid = document.createElement("div");
+  grid.className = "worlds";
+  const select = (
+    label: string,
+    key: keyof typeof draft,
+    choices: readonly string[],
+  ) => {
+    const row = document.createElement("div");
+    row.textContent = label + " ";
+    for (const choice of choices) {
+      const b = document.createElement("button");
+      b.className = "btn";
+      b.textContent = choice;
+      b.onclick = () => {
+        (draft as any)[key] = choice;
+        setAvatar(builtIn(sanitizeAvatar(draft)));
+        openStudio();
+      };
+      row.append(b);
+    }
+    grid.append(row);
   };
-  details.append(name);
-  for (const style of ["geisha", "ronin", "ghost", "fox"] as const) {
+  select("BODY", "body", BODY);
+  select("HAIR", "hair", HAIR);
+  select("TOP", "top", TOPS);
+  select("PANTS", "pants", PANTS);
+  select("SHOES", "shoes", SHOES);
+  select("HAT", "hat", HATS);
+  select("GLASSES", "glasses", GLASSES);
+  select("MASK", "mask", MASKS);
+  select("BACKPACK", "backpack", BACKPACKS);
+  for (const key of ["outfit", "accent", "skin", "hairColor"] as const) {
+    const input = document.createElement("input");
+    input.type = "color";
+    input.value = (draft as any)[key];
+    input.setAttribute("aria-label", key);
+    input.oninput = () => {
+      (draft as any)[key] = input.value;
+      setAvatar(builtIn(sanitizeAvatar(draft)));
+    };
+    grid.append(input);
+  }
+  const random = document.createElement("button");
+  random.className = "btn";
+  random.textContent = "RANDOMIZE";
+  random.onclick = () => {
+    Object.assign(draft, randomAvatar());
+    setAvatar(builtIn(draft));
+    openStudio();
+  };
+  const save = document.createElement("button");
+  save.className = "btn primary";
+  save.textContent = "SAVE LOOK";
+  save.onclick = () => {
+    cfg = sanitizeAvatar(draft);
+    saveConfig(cfg);
+    savePreset(cfg.name, cfg);
+    setAvatar(builtIn(cfg));
+    lounge.sendAppearance(appearanceOf(cfg));
+    menu();
+  };
+  const cancel = document.createElement("button");
+  cancel.className = "btn";
+  cancel.textContent = "CANCEL";
+  cancel.onclick = () => {
+    setAvatar(builtIn(cfg));
+    menu();
+  };
+  const saved = document.createElement("div");
+  for (const [label, look] of Object.entries(presets())) {
     const b = document.createElement("button");
     b.className = "btn";
-    b.textContent = style;
+    b.textContent = label;
     b.onclick = () => {
-      cfg = { ...cfg, style, imported: undefined };
-      saveConfig(cfg);
-      setAvatar(builtIn(cfg));
-      menu();
+      Object.assign(draft, look);
+      setAvatar(builtIn(draft));
+      openStudio();
     };
-    details.append(b);
+    saved.append(b);
   }
   const file = document.createElement("input");
   file.type = "file";
@@ -193,22 +285,15 @@ function menu() {
     if (!f) return;
     try {
       const g = await parseGlb(f);
-      await saveFile(f);
+      await saveFile(f, cfg.seed + "");
       cfg.imported = f.name;
-      saveConfig(cfg);
       setAvatar(g.model, g.clips);
-      note = "AVATAR IMPORTED";
-      menu();
+      note = "LOCAL-ONLY GLB · remote players see your wardrobe avatar";
     } catch (e) {
       note = "IMPORT ERROR · " + (e as Error).message;
     }
   };
-  details.append(file);
-  const play = document.createElement("button");
-  play.className = "btn primary";
-  play.textContent = "JACK IN";
-  play.onclick = () => start(w);
-  boot.append(h, list, details, play);
+  boot.append(h, name, grid, random, save, cancel, saved, file);
 }
 menu();
 const remotes = new Map<
@@ -240,13 +325,16 @@ function tag(text: string) {
 function upsertRemote(p: LoungePlayer) {
   if (loungeId === p.id) return;
   let remote = remotes.get(p.id);
-  if (!remote) {
-    const root = builtIn({
-      ...cfg,
-      name: p.name,
-      style: p.style,
-      imported: undefined,
-    });
+  const remoteConfig = sanitizeAvatar({
+    ...p.appearance,
+    name: p.name,
+    style: p.style,
+  });
+  const fingerprint = JSON.stringify(p.appearance || {});
+  if (!remote || remote.root.userData.appearance !== fingerprint) {
+    if (remote) s.remove(remote.root);
+    const root = builtIn(remoteConfig);
+    root.userData.appearance = fingerprint;
     root.add(tag(p.name));
     s.add(root);
     remote = { root, target: new T.Vector3(), yaw: p.yaw };
@@ -350,7 +438,11 @@ function start(x: WorldManifest, spawn?: string) {
   if (x.id === "neon-course") course = restart(course);
   chatPanel.style.display = x.id === "awaken-lounge" ? "block" : "none";
   if (x.id === "awaken-lounge")
-    lounge.connect({ name: cfg.name, style: cfg.style });
+    lounge.connect({
+      name: cfg.name,
+      style: cfg.style,
+      appearance: appearanceOf(cfg),
+    });
   else {
     lounge.disconnect();
     loungeId = "";

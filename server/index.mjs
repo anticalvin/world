@@ -17,6 +17,7 @@ class Player extends Schema {
     super();
     this.name = values.name || "WANDERER";
     this.style = values.style || "geisha";
+    this.appearance = values.appearance || "";
     this.x = Number(values.x) || 0;
     this.z = Number(values.z) || 9;
     this.yaw = Number(values.yaw) || 0;
@@ -25,6 +26,7 @@ class Player extends Schema {
 defineTypes(Player, {
   name: "string",
   style: "string",
+  appearance: "string",
   x: "number",
   z: "number",
   yaw: "number",
@@ -49,6 +51,30 @@ const safeChat = (value) =>
     .replace(/[\x00-\x1f\x7f]/g, "")
     .trim()
     .slice(0, 120);
+const options = {
+  body: ["blocky", "stylized"],
+  hair: ["bob", "mohawk", "bun"],
+  top: ["jacket", "hoodie", "armor"],
+  pants: ["cargo", "skirt", "shorts"],
+  shoes: ["boots", "sneakers", "sandals"],
+  hat: ["none", "cap", "beanie", "halo", "crown"],
+  glasses: ["none", "round", "visor"],
+  mask: ["none", "half", "neon"],
+  backpack: ["none", "pack", "wings"],
+  style: ["geisha", "ronin", "ghost", "fox"],
+};
+const safeAppearance = (value) => {
+  const v = value && typeof value === "object" ? value : {};
+  const result = {};
+  for (const [key, list] of Object.entries(options))
+    result[key] = list.includes(v[key]) ? v[key] : list[0];
+  for (const key of ["outfit", "accent", "skin", "hairColor"])
+    result[key] =
+      typeof v[key] === "string" && /^#[0-9a-f]{6}$/i.test(v[key])
+        ? v[key]
+        : "#35f0ff";
+  return JSON.stringify(result);
+};
 
 class LoungeRoom extends Room {
   maxClients = CAPACITY;
@@ -95,6 +121,15 @@ class LoungeRoom extends Room {
       if (text) this.broadcast("chat", { id: client.sessionId, text });
     });
     this.onMessage("sync", (client) => client.send("presence", this.players()));
+    this.onMessage("appearance", (client, message) => {
+      const player = this.state.players.get(client.sessionId);
+      if (!player) return;
+      player.appearance = safeAppearance(message?.appearance);
+      this.broadcast("appearance", {
+        id: client.sessionId,
+        appearance: player.appearance,
+      });
+    });
     this.setSimulationInterval((delta) => this.simulate(delta), 1000 / 60);
   }
   onAuth(client) {
@@ -115,6 +150,7 @@ class LoungeRoom extends Room {
       new Player({
         name: safeName(options?.name),
         style: safeStyle(options?.style),
+        appearance: safeAppearance(options?.appearance),
       }),
     );
     this.broadcast("presence", this.players());
@@ -154,6 +190,7 @@ class LoungeRoom extends Room {
         id,
         name: player.name,
         style: player.style,
+        appearance: player.appearance,
         x: player.x,
         z: player.z,
         yaw: player.yaw,
@@ -165,6 +202,7 @@ class LoungeRoom extends Room {
       id,
       name: player.name,
       style: player.style,
+      appearance: player.appearance,
       x: player.x,
       z: player.z,
       yaw: player.yaw,

@@ -21,6 +21,10 @@ WASD/arrows move, Shift sprints, Space jumps, C slides, V switches camera. Drag 
 
 Avatar controls in the terminal provide four procedural identities (geisha, ronin, ghost, fox) and GLB 2.0 import. Compatible files are size-limited to 8 MB, normalized to the player capsule, and saved in IndexedDB. Imported static models are supported; animation clips are used only when available.
 
+## Avatar Studio v1.4
+
+`AVATAR STUDIO` provides an articulated full-body procedural rig, blocky/stylized bodies, wardrobe parts, hats, hair, face accessories, backpacks, editable colors, randomized first appearance, and named saved looks. New local identities receive a stable color-coordinated seed once; they are not randomized on reload. GLB imports remain local-only. Multiplayer sends only a constrained wardrobe/color payload—never a GLB or local file.
+
 ## Experiences and SDK
 
 `src/sdk/manifest.ts` defines version 1 of the safe, declarative manifest: identity, scene collision assets, spawn points, portals, triggers, game mode, visibility, and builder access. `src/sdk/worlds.ts` ships AWAKEN Lounge, Neon Traverse (the obstacle course), and DELTA-9 Arena. Add a third experience by exporting a `WorldManifest`, validating it with `validateManifest`, and adding it to the registry—no engine-core changes or user-supplied JavaScript are needed.
