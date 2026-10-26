@@ -63,6 +63,7 @@ s.add(
 const grid = new T.GridHelper(50, 50, 0xff2e9a, 0x35f0ff);
 grid.visible = false;
 s.add(grid);
+let physicsReady = false;
 let cfg: AvatarConfig = loadConfig(),
   model: T.Object3D = builtIn(cfg),
   an = new AvatarAnimator(model),
@@ -410,7 +411,6 @@ const lounge = new LoungeClient({
 });
 const muted = new Set<string>();
 const hero = new RapierCharacter();
-let physicsReady = false;
 const physicsLoad = hero.ready.then(() => {
   physicsReady = true;
   const jackIn = document.querySelector<HTMLButtonElement>("#jack-in");
