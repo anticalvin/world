@@ -24,6 +24,10 @@
 
 Do not claim local sessions are multiplayer. Do not run creator-supplied JavaScript. Keep the official Lounge protected. Preserve local avatar persistence and GLB importing when reintroducing the original detailed avatar UI (the former monolithic prototype is preserved in `original-demo.html`).
 
+## Mobile recovery
+
+The renderer must be resized from `visualViewport` as well as window resize events. The canvas is fixed to the gameplay viewport; do not reintroduce a global debug grid. Camera occlusion uses authored visual meshes in addition to portal objects. The joystick owns exactly one pointer and clears input on pointerup, pointercancel, and lost pointer capture. This was verified in browser emulation, not on a physical iPhone.
+
 ## Next work
 
 1. Complete the full-screen avatar studio and Miko dialogue UI. The restoration audit documents these gaps explicitly.

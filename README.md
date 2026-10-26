@@ -32,6 +32,10 @@ The world directory includes AWAKEN Lounge, Koi Hours, Rain Alley 404, Neon Trav
 
 The fixed 60 Hz motor has tuned acceleration/braking, sprint, airborne control, coyote time, buffered jump, and sliding. Rapier's kinematic capsule controller supplies collision, autostep/stairs, ground snap, and slope limits. Third-person camera collision raycasts against authored geometry.
 
+## Mobile rendering recovery
+
+The iPhone black/upper-left rendering fault was caused by the canvas being sized solely from `innerWidth`/`innerHeight`, without reacting to iOS visual-viewport changes caused by browser chrome. The renderer now uses `visualViewport` dimensions, keeps its CSS canvas fixed to the active gameplay viewport, and updates its camera projection whenever that viewport changes. Gameplay has compact safe-area HUD placement, a pointer-cancel-safe joystick, and 48px touch actions. No physical iPhone was available for this release; the result is browser-viewport verified only.
+
 ## Verification and performance
 
 - `npm test`: 6 deterministic movement, SDK, portal, and course-timer tests.
