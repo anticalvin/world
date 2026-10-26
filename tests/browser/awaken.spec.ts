@@ -1,1 +1,79 @@
-import { test, expect } from '@playwright/test'; for(const viewport of [{width:1280,height:800},{width:390,height:844}])test(`loads and enters at ${viewport.width}px`,async({page})=>{await page.setViewportSize(viewport);await page.goto('/');await expect(page.getByRole('heading',{name:'AWAKEN'})).toBeVisible();await page.getByRole('button',{name:'JACK IN'}).click();await expect(page.locator('#where')).toContainText('AWAKEN Lounge');await page.keyboard.press('KeyV');await page.keyboard.down('KeyW');await page.waitForTimeout(300);await page.keyboard.up('KeyW')});
+import { expect, test } from "@playwright/test";
+
+for (const viewport of [
+  { width: 1280, height: 800 },
+  { width: 390, height: 844 },
+]) {
+  test(`loads and enters at ${viewport.width}px`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "AWAKEN" })).toBeVisible();
+    await page.getByRole("button", { name: "JACK IN" }).click();
+    await expect(page.locator("#where")).toContainText("AWAKEN Lounge");
+    await page.keyboard.press("KeyV");
+    await page.keyboard.down("KeyW");
+    await page.waitForTimeout(300);
+    await page.keyboard.up("KeyW");
+  });
+}
+
+test("two real browser clients meet, move, chat, disconnect and reconnect", async ({
+  browser,
+}) => {
+  const first = await browser.newContext({
+    viewport: { width: 1280, height: 800 },
+  });
+  const second = await browser.newContext({
+    viewport: { width: 1280, height: 800 },
+  });
+  const alpha = await first.newPage();
+  const beta = await second.newPage();
+  for (const page of [alpha, beta]) {
+    await page.goto("/");
+    await page.getByRole("button", { name: "JACK IN" }).click();
+    await expect(page.locator("#network-status")).toHaveText(
+      "CONNECTED · LIVE LOUNGE",
+    );
+  }
+  await expect
+    .poll(() =>
+      alpha.evaluate(() => (window as any).__AWAKEN_DEBUG?.remoteCount),
+    )
+    .toBe(1);
+  await expect
+    .poll(() =>
+      beta.evaluate(() => (window as any).__AWAKEN_DEBUG?.remoteCount),
+    )
+    .toBe(1);
+  const before = await beta.evaluate(
+    () => (window as any).__AWAKEN_DEBUG?.remotePosition?.z,
+  );
+  await alpha.keyboard.down("KeyW");
+  await alpha.waitForTimeout(550);
+  await alpha.keyboard.up("KeyW");
+  await expect
+    .poll(() =>
+      beta.evaluate(() => (window as any).__AWAKEN_DEBUG?.remotePosition?.z),
+    )
+    .not.toBe(before);
+  await alpha.getByRole("textbox", { name: "Lounge chat" }).fill("hello beta");
+  await alpha.getByRole("button", { name: "SEND" }).click();
+  await expect(beta.getByText("WANDERER: hello beta")).toBeVisible();
+  await beta.screenshot({ path: "test-results/lounge-two-client.png" });
+  await alpha.close();
+  await expect
+    .poll(() =>
+      beta.evaluate(() => (window as any).__AWAKEN_DEBUG?.remoteCount),
+    )
+    .toBe(0);
+  const alphaAgain = await first.newPage();
+  await alphaAgain.goto("/");
+  await alphaAgain.getByRole("button", { name: "JACK IN" }).click();
+  await expect
+    .poll(() =>
+      beta.evaluate(() => (window as any).__AWAKEN_DEBUG?.remoteCount),
+    )
+    .toBe(1);
+  await first.close();
+  await second.close();
+});

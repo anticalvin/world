@@ -1,18 +1,19 @@
-# AWAKEN Engine 1.3 / Avatar Studio + Multiplayer Foundation
+# AWAKEN Engine 1.3.1 / Real Lounge Multiplayer Slice
 
 AWAKEN is a local browser prototype: one persisted avatar identity travels between declarative experiences. It never represents local placeholders as real multiplayer.
 
 ## Run
 
 ```sh
-npm install
-npm run dev
+npm ci
+npm run server
+# in a second terminal: VITE_AWAKEN_WS_URL=ws://127.0.0.1:2567 npm run dev
 npm run build
 npm test
 npm run test:browser
 ```
 
-`dist/` is a static production build with locally bundled Three.js and Rapier. No runtime CDN is required.
+`docs/` is the static production build used by GitHub Pages. No runtime CDN is required.
 
 ## Controls
 
@@ -28,9 +29,11 @@ The Lounge is `protected` and has `build: 'none'`. The runtime does not execute 
 
 The world directory includes AWAKEN Lounge, Koi Hours, Rain Alley 404, Neon Traverse, and DELTA-9. `MENU` (or Escape) always returns to the directory; every destination has a validated Lounge return portal. See `RESTORATION_AUDIT.md` for recovered landmarks and known differences.
 
-## Multiplayer foundation
+## Lounge multiplayer
 
-The browser remains honestly **local-only**. A separate pinned Colyseus Lounge server now lives in `server/`; run `npm run server` and verify `/health` at port 2567. It validates names, built-in styles, movement input, message size/rate, room capacity, and server-owned positions. It does not yet connect the browser client, so it does not display simulated users as real players. See `docs/MULTIPLAYER_FOUNDATION.md`.
+The Lounge browser client connects to the pinned Colyseus server when `VITE_AWAKEN_WS_URL` is supplied (or to port 2567 on the current host). A player sees only real connected clients using built-in avatar styles, receives server-originated presence/movement updates, can chat, and sees disconnect cleanup. When the server is unavailable it says **OFFLINE · LOCAL SESSION** and does not invent occupants.
+
+The server validates names/styles, bounded sequenced inputs, timestamps, chat length/rate, room capacity, stale input, and server-owned X/Z positions. Imported GLBs remain local-only and are never transmitted. This first vertical slice uses a bounded, flat Lounge network motor; local Rapier movement remains the authoritative-feeling single-player controller, so network collision/gravity/jump parity is not complete. A static GitHub Pages site cannot host the required WebSocket service; deploy a separate WSS endpoint before enabling multiplayer in production.
 
 ## Movement
 
@@ -43,7 +46,7 @@ The iPhone black/upper-left rendering fault was caused by the canvas being sized
 ## Verification and performance
 
 - `npm test`: 6 deterministic movement, SDK, portal, and course-timer tests.
-- `npm run test:browser`: Playwright runs the entry flow and movement at 1280×800 and 390×844.
+- `npm run test:browser`: Playwright runs the entry flow at 1280×800 and 390×844, plus two independent real browser clients joining, seeing movement, chatting, disconnecting, and reconnecting.
 - Latest movement microbenchmark: 3,600 fixed ticks in **0.186 ms** on this development host. This measures motor arithmetic, not browser rendering.
 - Production bundle: 2.84 MB / 989 KB gzip JavaScript. Rapier and the GLB loader dominate the initial payload; split them into on-demand chunks before public deployment.
 
