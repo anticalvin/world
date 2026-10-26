@@ -1,4 +1,4 @@
-# AWAKEN Engine 1.2 / Identity, Animation & Flow
+# AWAKEN Engine 1.2.1 / World Restoration & Identity
 
 AWAKEN is a local browser prototype: one persisted avatar identity travels between declarative experiences. It never represents local placeholders as real multiplayer.
 
@@ -25,6 +25,8 @@ Avatar controls in the terminal provide four procedural identities (geisha, roni
 `src/sdk/manifest.ts` defines version 1 of the safe, declarative manifest: identity, scene collision assets, spawn points, portals, triggers, game mode, visibility, and builder access. `src/sdk/worlds.ts` ships AWAKEN Lounge, Neon Traverse (the obstacle course), and DELTA-9 Arena. Add a third experience by exporting a `WorldManifest`, validating it with `validateManifest`, and adding it to the registry—no engine-core changes or user-supplied JavaScript are needed.
 
 The Lounge is `protected` and has `build: 'none'`. The runtime does not execute creator JavaScript.
+
+The world directory includes AWAKEN Lounge, Koi Hours, Rain Alley 404, Neon Traverse, and DELTA-9. `MENU` (or Escape) always returns to the directory; every destination has a validated Lounge return portal. See `RESTORATION_AUDIT.md` for recovered landmarks and known differences.
 
 ## Movement
 

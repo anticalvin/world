@@ -1,4 +1,4 @@
-# AWAKEN Engine 1.2 handoff
+# AWAKEN Engine 1.2.1 handoff
 
 ## Verified
 
@@ -14,6 +14,7 @@
 - `src/movement/rapier-controller.ts`: Rapier WASM capsule controller, collision and stairs/ground snap.
 - `src/sdk/manifest.ts`: versioned safe Experience SDK schema and validator.
 - `src/sdk/worlds.ts`: three examples. AWAKEN Lounge is protected (`build: none`); Neon Traverse is the small obstacle course; DELTA-9 is the arena shell.
+- `src/worlds/scenes.ts`: separate authored visual scene roots for Lounge, Koi Hours, Rain Alley, Traverse, and Delta-9. Do not replace them with collision meshes.
 - `src/avatar/avatar.ts`: four procedural avatars, safe GLB 2.0 validation/normalization, and IndexedDB persistence.
 - `src/avatar/animation.ts`: uses Rapier velocity/ground state for procedural or compatible GLB animation states.
 - `src/game/course.ts`: deterministic Neon Traverse timer/checkpoint/personal-best logic.
@@ -25,7 +26,7 @@ Do not claim local sessions are multiplayer. Do not run creator-supplied JavaScr
 
 ## Next work
 
-1. Add a committed real GLB test fixture to cover successful browser-side import and restore; current import validation is unit-level and the browser suite does not upload a fixture.
+1. Complete the full-screen avatar studio and Miko dialogue UI. The restoration audit documents these gaps explicitly.
 2. Replace simple obstacle meshes with manifest asset URLs plus an explicit server-side asset validation pipeline.
 3. Split Rapier into an experience-runtime chunk to reduce the 956 KB gzip initial JavaScript payload.
 4. Add a genuine mobile thumbstick and physical-device check; the current mobile browser viewport test verifies layout/input safety but is not a physical handset test.
