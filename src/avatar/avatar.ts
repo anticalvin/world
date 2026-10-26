@@ -182,38 +182,21 @@ export function builtIn(input: AvatarConfig) {
   root.userData.sockets = {};
   const box = (x: number, y: number, z: number) =>
     new THREE.BoxGeometry(x, y, z);
-  const limb = block
-    ? box(0.24, 0.72, 0.24)
-    : new THREE.CapsuleGeometry(0.13, 0.48, 4, 8);
-  part(
-    root,
-    "TORSO",
-    block
-      ? box(0.72, 0.82, 0.34)
-      : new THREE.CylinderGeometry(0.38, 0.32, 0.85, 8),
-    cloth,
-    0,
-    1.28,
-    0,
-  );
-  part(
-    root,
-    "HEAD",
-    block ? box(0.52, 0.55, 0.48) : new THREE.SphereGeometry(0.32, 12, 10),
-    skin,
-    0,
-    2.02,
-    0,
-  );
-  for (const [side, x] of [
-    ["LEFT", -0.48],
-    ["RIGHT", 0.48],
-  ] as const) {
-    const upper = part(root, `${side}_UPPER_ARM`, limb, cloth, x, 1.61, 0, -0.36);
-    part(upper, `${side}_LOWER_ARM`, limb, skin, 0, -0.69, 0, -0.36);
-    const thigh = part(root, `${side}_UPPER_LEG`, limb, cloth, x * 0.55, 0.91, 0, -0.36);
-    const shin = part(thigh, `${side}_LOWER_LEG`, limb, accent, 0, -0.69, 0, -0.36);
-    part(shin, `${side}_FOOT`, box(0.26, 0.16, 0.38), accent, 0, -0.69, 0.1);
+  // Rig origin is the floor. Shoe soles must be at y=0 in the standing pose.
+  const upperArm = block ? box(0.22, 0.52, 0.22) : new THREE.CapsuleGeometry(0.11, 0.30, 4, 8);
+  const lowerArm = block ? box(0.19, 0.46, 0.19) : new THREE.CapsuleGeometry(0.095, 0.27, 4, 8);
+  const upperLeg = block ? box(0.25, 0.44, 0.26) : new THREE.CapsuleGeometry(0.125, 0.19, 4, 8);
+  const lowerLeg = block ? box(0.22, 0.43, 0.23) : new THREE.CapsuleGeometry(0.11, 0.21, 4, 8);
+  part(root, "TORSO", block ? box(0.72, 0.82, 0.34) : new THREE.CylinderGeometry(0.38, 0.32, 0.85, 8), cloth, 0, 1.28, 0);
+  part(root, "HEAD", block ? box(0.52, 0.55, 0.48) : new THREE.SphereGeometry(0.32, 12, 10), skin, 0, 2.02, 0);
+  for (const [side, x] of [["LEFT", -0.48], ["RIGHT", 0.48]] as const) {
+    // Joint pivots sit at shoulder, elbow, hip, knee and ankle.
+    const shoulder = part(root, `${side}_UPPER_ARM`, upperArm, cloth, x, 1.56, 0, -0.26);
+    part(shoulder, `${side}_LOWER_ARM`, lowerArm, skin, 0, -0.51, 0, -0.23);
+    const hip = part(root, `${side}_UPPER_LEG`, upperLeg, cloth, x * 0.55, 0.91, 0, -0.22);
+    const knee = part(hip, `${side}_LOWER_LEG`, lowerLeg, accent, 0, -0.44, 0, -0.215);
+    // Knee pivot at 0.47; ankle at 0.08; shoe extends from 0 to 0.16.
+    part(knee, `${side}_FOOT`, box(0.26, 0.16, 0.38), accent, 0, -0.39, 0.1);
   }
   const socket = (name: string, x: number, y: number, z: number) => {
     const q = new THREE.Group();

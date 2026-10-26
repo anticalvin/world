@@ -46,6 +46,11 @@ export class LoungeClient {
 
   async connect(profile: LoungeProfile) {
     this.profile = profile;
+    // Static GitHub Pages hosting cannot provide a Colyseus WebSocket server.
+    if (location.hostname.endsWith(".github.io") && !import.meta.env.VITE_AWAKEN_WS_URL) {
+      this.handlers.status("offline", "OFFLINE · LOCAL SESSION");
+      return;
+    }
     this.stopped = false;
     clearTimeout(this.retry);
     this.handlers.status(

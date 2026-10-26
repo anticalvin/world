@@ -118,15 +118,24 @@ hud.innerHTML =
 app.append(boot, hud);
 const where = hud.querySelector("#where")!,
   notice = hud.querySelector("#notice")!;
-const chatPanel = document.createElement("section"),
+const chatToggle = document.createElement("button"),
+  chatPanel = document.createElement("section"),
   networkStatus = document.createElement("small"),
   chatLog = document.createElement("output"),
   chatForm = document.createElement("form"),
   chatText = document.createElement("input"),
   chatSend = document.createElement("button");
 chatPanel.className = "panel";
+chatToggle.className = "btn";
+chatToggle.id = "chat-toggle";
+chatToggle.type = "button";
+chatToggle.textContent = "CHAT";
+chatToggle.setAttribute("aria-expanded", "false");
+chatToggle.setAttribute("aria-controls", "lounge-chat");
+chatToggle.style.cssText = "position:absolute;left:0;top:52px;min-height:40px;pointer-events:auto";
+chatPanel.id = "lounge-chat";
 chatPanel.style.cssText =
-  "display:none;position:absolute;left:0;bottom:154px;max-width:250px";
+  "display:none;position:absolute;left:0;top:102px;bottom:auto;width:min(280px,calc(100vw - 36px));max-height:35vh;overflow:auto;box-sizing:border-box;pointer-events:auto";
 chatPanel.setAttribute("aria-label", "Lounge chat");
 networkStatus.textContent = "OFFLINE · LOCAL SESSION";
 networkStatus.id = "network-status";
@@ -140,7 +149,16 @@ chatSend.className = "btn";
 chatSend.textContent = "SEND";
 chatForm.append(chatText, chatSend);
 chatPanel.append(networkStatus, chatLog, chatForm);
-hud.append(chatPanel);
+hud.append(chatToggle, chatPanel);
+let chatOpen = false;
+function toggleChat(open = !chatOpen) {
+  chatOpen = open;
+  chatPanel.style.display = open && w.id === "awaken-lounge" && active ? "block" : "none";
+  chatToggle.setAttribute("aria-expanded", String(open));
+  chatToggle.textContent = open ? "CLOSE CHAT" : "CHAT";
+  if (!open) chatText.blur();
+}
+chatToggle.onclick = () => toggleChat();
 chatForm.onsubmit = (e) => {
   e.preventDefault();
   const text = chatText.value.trim();
@@ -433,10 +451,13 @@ function start(x: WorldManifest, spawn?: string) {
   active = true;
   boot.style.display = "none";
   hud.style.display = "block";
+  stickReset();
+  keys.clear();
   art(x);
   hero.setWorld(x.scene.colliders, x.spawns[spawn || Object.keys(x.spawns)[0]]);
   if (x.id === "neon-course") course = restart(course);
-  chatPanel.style.display = x.id === "awaken-lounge" ? "block" : "none";
+  toggleChat(false);
+  chatToggle.style.display = x.id === "awaken-lounge" ? "block" : "none";
   if (x.id === "awaken-lounge")
     lounge.connect({
       name: cfg.name,
@@ -484,6 +505,9 @@ function game() {
 }
 function exitToMenu() {
   active = false;
+  toggleChat(false);
+  stickReset();
+  mobileRun = false;
   keys.clear();
   lounge.disconnect();
   loungeId = "";
@@ -493,6 +517,7 @@ function exitToMenu() {
   menu();
 }
 addEventListener("keydown", (e) => {
+  if (e.target instanceof HTMLElement && (e.target.matches("input, textarea, select") || e.target.isContentEditable)) return;
   if (e.code === "Escape" && active) {
     exitToMenu();
     return;
@@ -506,6 +531,7 @@ addEventListener("keydown", (e) => {
   if (e.code === "KeyR" && w.id === "neon-course") start(w, "start");
   keys.add(e.code);
 });
+addEventListener("blur", () => { keys.clear(); stickReset(); mobileRun = false; });
 addEventListener("keyup", (e) => keys.delete(e.code));
 let drag: { x: number; y: number } | undefined;
 r.domElement.onpointerdown = (e) => {
@@ -561,6 +587,7 @@ stick.onlostpointercapture = stickReset;
 (hud.querySelector("#run") as HTMLButtonElement).onclick = () =>
   (mobileRun = !mobileRun);
 function follow(p: { x: number; y: number; z: number }, dt: number) {
+  // Rapier capsule center is 0.96 above its sole contact plane.
   av.position.set(p.x, p.y - 0.96, p.z);
   av.rotation.y = yaw + Math.PI;
   const target = new T.Vector3(p.x, p.y + 0.45, p.z);
@@ -577,7 +604,7 @@ function follow(p: { x: number; y: number; z: number }, dt: number) {
     ),
     d = ideal.clone().sub(target).normalize();
   ray.set(target, d);
-  const hit = ray.intersectObjects(objects)[0],
+  const hit = ray.intersectObjects(objects.filter(o => !o.name.startsWith("portal-")))[0],
     wanted = hit
       ? target.clone().addScaledVector(d, Math.max(0.25, hit.distance - 0.15))
       : ideal;
