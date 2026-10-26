@@ -1,4 +1,4 @@
-# AWAKEN Engine 1.2.1 handoff
+# AWAKEN Engine 1.3 handoff
 
 ## Verified
 
@@ -18,6 +18,7 @@
 - `src/avatar/avatar.ts`: four procedural avatars, safe GLB 2.0 validation/normalization, and IndexedDB persistence.
 - `src/avatar/animation.ts`: uses Rapier velocity/ground state for procedural or compatible GLB animation states.
 - `src/game/course.ts`: deterministic Neon Traverse timer/checkpoint/personal-best logic.
+- `server/index.mjs`: standalone Colyseus Lounge proof-of-concept. It is not connected to the browser client yet.
 - `tests/movement.test.ts` and `tests/browser/awaken.spec.ts`: test coverage.
 
 ## Critical product invariants
@@ -35,3 +36,7 @@ The renderer must be resized from `visualViewport` as well as window resize even
 3. Split Rapier into an experience-runtime chunk to reduce the 956 KB gzip initial JavaScript payload.
 4. Add a genuine mobile thumbstick and physical-device check; the current mobile browser viewport test verifies layout/input safety but is not a physical handset test.
 5. If networked play is added, make server physics authoritative; do not display fabricated occupants or chat.
+
+## Multiplayer scope
+
+Only built-in avatar style strings are accepted remotely. Imported GLBs and IndexedDB files are local-only and must never be fetched from another browser. The next server milestone is shared Rapier movement validation and a two-client integration test, followed by explicit connection/offline UI in the client.

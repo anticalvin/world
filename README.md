@@ -1,4 +1,4 @@
-# AWAKEN Engine 1.2.1 / World Restoration & Identity
+# AWAKEN Engine 1.3 / Avatar Studio + Multiplayer Foundation
 
 AWAKEN is a local browser prototype: one persisted avatar identity travels between declarative experiences. It never represents local placeholders as real multiplayer.
 
@@ -27,6 +27,10 @@ Avatar controls in the terminal provide four procedural identities (geisha, roni
 The Lounge is `protected` and has `build: 'none'`. The runtime does not execute creator JavaScript.
 
 The world directory includes AWAKEN Lounge, Koi Hours, Rain Alley 404, Neon Traverse, and DELTA-9. `MENU` (or Escape) always returns to the directory; every destination has a validated Lounge return portal. See `RESTORATION_AUDIT.md` for recovered landmarks and known differences.
+
+## Multiplayer foundation
+
+The browser remains honestly **local-only**. A separate pinned Colyseus Lounge server now lives in `server/`; run `npm run server` and verify `/health` at port 2567. It validates names, built-in styles, movement input, message size/rate, room capacity, and server-owned positions. It does not yet connect the browser client, so it does not display simulated users as real players. See `docs/MULTIPLAYER_FOUNDATION.md`.
 
 ## Movement
 
