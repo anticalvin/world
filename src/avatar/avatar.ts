@@ -182,9 +182,10 @@ export function builtIn(input: AvatarConfig) {
   root.userData.sockets = {};
   const box = (x: number, y: number, z: number) =>
     new THREE.BoxGeometry(x, y, z);
-  const limb = block
-    ? box(0.24, 0.72, 0.24)
-    : new THREE.CapsuleGeometry(0.13, 0.48, 4, 8);
+  const armUpper = block ? box(0.22, 0.52, 0.22) : new THREE.CapsuleGeometry(0.11, 0.30, 4, 8);
+  const armLower = block ? box(0.19, 0.46, 0.19) : new THREE.CapsuleGeometry(0.095, 0.27, 4, 8);
+  const legUpper = block ? box(0.25, 0.44, 0.26) : new THREE.CapsuleGeometry(0.125, 0.19, 4, 8);
+  const legLower = block ? box(0.22, 0.43, 0.23) : new THREE.CapsuleGeometry(0.11, 0.21, 4, 8);
   part(
     root,
     "TORSO",
@@ -209,11 +210,13 @@ export function builtIn(input: AvatarConfig) {
     ["LEFT", -0.48],
     ["RIGHT", 0.48],
   ] as const) {
-    const upper = part(root, `${side}_UPPER_ARM`, limb, cloth, x, 1.61, 0, -0.36);
-    part(upper, `${side}_LOWER_ARM`, limb, skin, 0, -0.69, 0, -0.36);
-    const thigh = part(root, `${side}_UPPER_LEG`, limb, cloth, x * 0.55, 0.91, 0, -0.36);
-    const shin = part(thigh, `${side}_LOWER_LEG`, limb, accent, 0, -0.69, 0, -0.36);
-    part(shin, `${side}_FOOT`, box(0.26, 0.16, 0.38), accent, 0, -0.69, 0.1);
+    const upper = part(root, `${side}_UPPER_ARM`, armUpper, cloth, x, 1.56, 0, -0.26);
+    part(upper, `${side}_LOWER_ARM`, armLower, skin, 0, -0.51, 0, -0.23);
+    // Hip at 0.91; knee at 0.47; ankle at 0.08; shoe sole at y=0.
+    // Keep the foot anchored at floor height instead of stacking full-length limbs.
+    const thigh = part(root, `${side}_UPPER_LEG`, legUpper, cloth, x * 0.55, 0.91, 0, -0.22);
+    const shin = part(thigh, `${side}_LOWER_LEG`, legLower, accent, 0, -0.44, 0, -0.215);
+    part(shin, `${side}_FOOT`, box(0.26, 0.16, 0.38), accent, 0, -0.39, 0.1);
   }
   const socket = (name: string, x: number, y: number, z: number) => {
     const q = new THREE.Group();
