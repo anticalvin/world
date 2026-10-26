@@ -1,0 +1,25 @@
+{
+  "name": "awaken-engine",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:browser": "playwright test",
+    "benchmark": "node scripts/benchmark.mjs"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "0.19.3",
+    "three": "0.180.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.55.0",
+    "@types/three": "^0.180.0",
+    "typescript": "5.9.2",
+    "vite": "7.1.7",
+    "vitest": "3.2.4"
+  }
+}

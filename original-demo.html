@@ -1,0 +1,278 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d0614"><title>AWAKEN / Network Terminal</title>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--ink:#0d0614;--vio:#2a0f4d;--mag:#ff2e9a;--cyan:#35f0ff;--amber:#ffb347;--paper:#f5e9ff;--red:#ff3b3b;font-family:'DotGothic16','MS Gothic',monospace}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--ink);color:var(--paper);overflow:hidden}
+button,input{font:inherit;color:inherit}
+canvas#gl{position:fixed;inset:0;width:100%;height:100%;touch-action:none}
+.scan{position:fixed;inset:0;pointer-events:none;z-index:50;background:repeating-linear-gradient(0deg,#0000 0 2px,#0006 3px);mix-blend-mode:multiply}
+.panel{background:#0d0614e6;border:2px solid var(--cyan);box-shadow:4px 4px 0 var(--mag);padding:14px 16px}
+.btn{display:block;width:100%;min-height:48px;margin-top:10px;padding:10px 14px;background:var(--vio);border:2px solid var(--cyan);text-align:left;cursor:pointer;letter-spacing:.04em;font-size:16px}
+.btn:hover,.btn:focus-visible{background:var(--mag);border-color:var(--paper);outline:none;color:#fff}
+.btn.pri{background:var(--mag);border-color:var(--paper)}
+#boot,#end{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));background:radial-gradient(ellipse at 50% 120%,#5a1a6e 0,var(--ink) 60%)}
+#boot .panel,#end .panel{width:min(440px,100%)}
+h1{margin:0 0 4px;font-size:34px;letter-spacing:.14em;color:var(--mag);text-shadow:3px 0 var(--cyan),-2px 0 #fff3}
+.sub{color:var(--cyan);font-size:13px;margin-bottom:14px}
+.city{height:70px;margin:-14px -16px 14px;background:linear-gradient(#0000,#0d0614),repeating-linear-gradient(90deg,#1b0b33 0 18px,#2a0f4d 18px 30px,#12082a 30px 52px);clip-path:polygon(0 40%,10% 40%,10% 10%,22% 10%,22% 55%,34% 55%,34% 25%,48% 25%,48% 60%,60% 60%,60% 0,74% 0,74% 45%,88% 45%,88% 30%,100% 30%,100% 100%,0 100%);position:relative}
+label{display:block;font-size:13px;color:var(--amber);margin:4px 0}
+input{width:100%;min-height:46px;padding:8px 10px;background:#000;border:2px solid var(--amber);color:var(--amber);font-size:18px;text-transform:uppercase}
+#link{position:fixed;inset:0;z-index:30;background:#000;display:none;place-items:center;padding:24px}
+#link .panel{width:min(420px,100%)}
+.bar{height:16px;border:2px solid var(--cyan);margin:12px 0}.bar i{display:block;height:100%;width:0;background:repeating-linear-gradient(90deg,var(--mag) 0 8px,#0000 8px 10px)}
+#hud{position:fixed;inset:0;z-index:10;pointer-events:none;display:none}
+#top{position:absolute;left:12px;right:12px;top:calc(10px + env(safe-area-inset-top));display:flex;gap:8px;justify-content:space-between;font-size:12px}
+#top .panel{padding:8px 10px;box-shadow:3px 3px 0 var(--mag)}
+#hearts{letter-spacing:.1em;color:var(--mag)}
+#sig b{display:inline-block;width:5px;background:var(--cyan);margin-right:2px;vertical-align:bottom}
+#talk{position:absolute;left:50%;bottom:calc(150px + env(safe-area-inset-bottom));transform:translateX(-50%);width:auto;pointer-events:auto;display:none;animation:blink 1.2s steps(2) infinite}
+@keyframes blink{50%{box-shadow:4px 4px 0 var(--cyan)}}
+#dlg{position:absolute;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));display:none;pointer-events:auto;max-width:560px;margin:auto}
+#dlg .who{color:var(--mag);font-size:13px;margin-bottom:4px}#dlg p{margin:0 0 4px;font-size:17px;line-height:1.5}
+#stick{position:absolute;left:18px;bottom:calc(24px + env(safe-area-inset-bottom));width:116px;height:116px;border:2px solid var(--cyan);border-radius:50%;background:#0d061488;pointer-events:auto;touch-action:none;display:none}
+#nub{position:absolute;left:33px;top:33px;width:46px;height:46px;border-radius:50%;background:var(--mag);border:2px solid var(--paper)}
+@media(pointer:coarse){#stick{display:block}}
+#hint{position:absolute;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));font-size:11px;color:var(--cyan);text-align:right}
+#flash{position:fixed;inset:0;z-index:40;pointer-events:none;background:var(--red);opacity:0}
+.glitch{animation:gl .12s steps(2) 8}@keyframes gl{0%{transform:translate(4px,-2px) skewX(3deg);filter:hue-rotate(90deg)}100%{transform:translate(-5px,2px);filter:invert(.2)}}
+.warn{color:var(--red)}
+#boot{display:block;background:none;padding:0;pointer-events:none}
+#boot .panel{pointer-events:auto;position:absolute;left:0;right:0;bottom:0;margin:auto;width:min(560px,100%);max-height:60vh;overflow:auto;padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+#boot h1{font-size:26px}#jack{position:sticky;bottom:0}
+.tabs{display:flex;gap:6px}.tabs button{flex:1;min-height:42px;background:#000;border:2px solid var(--cyan);cursor:pointer;font-size:15px}.tabs .on{background:var(--cyan);color:#000}
+.w{border:2px solid var(--vio);padding:10px;margin-top:8px;cursor:pointer}.w.on{border-color:var(--mag);box-shadow:3px 3px 0 var(--mag);background:#2a0f4d66}.w small{color:var(--cyan)}
+.sw{display:flex;gap:8px;flex-wrap:wrap}.sw i{width:40px;height:40px;border:2px solid #fff3;cursor:pointer}.sw i.on{border-color:#fff;outline:2px solid var(--mag)}
+.sty{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.sty button{min-height:44px;background:#000;border:2px solid var(--vio);cursor:pointer;font-size:14px}.sty .on{border-color:var(--mag);background:var(--mag)}
+#chat{position:absolute;left:12px;top:calc(78px + env(safe-area-inset-top));width:min(270px,62vw);font-size:12px}
+#chat p{margin:2px 0;text-shadow:0 0 4px #000,0 0 2px #000}#chat b{color:var(--amber)}
+#cin{pointer-events:auto;min-height:38px;font-size:14px;margin-top:4px;text-transform:none;border-color:var(--cyan);color:var(--paper)}
+#tools{position:absolute;right:12px;top:calc(78px + env(safe-area-inset-top));display:flex;gap:6px}#tools .btn{width:auto;margin:0;min-height:40px;pointer-events:auto;padding:6px 10px;font-size:13px}
+@media(prefers-reduced-motion:reduce){.glitch,#talk{animation:none}}
+</style></head><body>
+<canvas id="gl"></canvas><div class="scan"></div><div id="flash"></div>
+
+<div id="boot"><div class="panel">
+<h1>AWAKEN</h1><div class="sub">network terminal · shared virtual city</div>
+<p style="font-size:14px;line-height:1.5;margin:0 0 10px">One link, many people. The <b style="color:var(--mag)">AWAKEN Lounge</b> is the official social space. Creators open their own worlds from this same terminal. Set up your avatar, pick a world, then jack in.</p>
+<div class="tabs"><button id="tw">Worlds</button><button id="ta">Avatar</button></div>
+<div id="pane"></div>
+<button class="btn pri" id="jack">Jack in</button></div></div>
+
+<div id="link"><div class="panel"><div class="sub" id="linkTxt">HANDSHAKE</div><div class="bar"><i id="fill"></i></div><div style="font-size:12px;color:var(--amber)">Do not remove the jack.</div></div></div>
+
+<div id="hud">
+<div id="top"><div class="panel"><span id="wname"></span><br><span id="clock">00:00</span> · <span id="pop"></span> <span id="sig"></span></div><div class="panel" style="text-align:right">LINK<br><span id="hearts"></span></div></div>
+<div id="chat"><div id="log"></div><input id="cin" maxlength="120" placeholder="Say something" autocomplete="off"></div><div id="tools"><button class="btn" id="view">View</button><button class="btn" id="exit">Terminal</button></div>
+<button class="btn pri" id="talk">Talk to Miko [E]</button>
+<div id="dlg" class="panel"><div class="who">MIKO</div><p id="line"></p><div id="choices"></div></div>
+<div id="stick"><div id="nub"></div></div>
+<div id="hint">WASD move · drag look · E talk · V view</div></div>
+
+<div id="end"  style="display:none"><div class="panel"><h1 id="endT" style="font-size:26px"></h1><p id="endP" style="line-height:1.6"></p>
+<button class="btn pri" id="again">Jack back in</button><button class="btn" id="toTerm">Return to terminal</button></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+/* AVATAR SCHEMA (sync this object over the network): {name,style,skin,outfit,accent,hair} */
+let cfg={name:'WANDERER',style:'geisha',skin:'#fff0e6',outfit:'#ff2e9a',accent:'#35f0ff',hair:'#08040f'};
+try{Object.assign(cfg,JSON.parse(localStorage.getItem('awaken-avatar')))}catch(e){}
+let handle=cfg.name;const saveCfg=()=>{try{localStorage.setItem('awaken-avatar',JSON.stringify(cfg))}catch(e){}};
+
+/* ---------- scene ---------- */
+const R=new THREE.WebGLRenderer({canvas:$('gl'),antialias:false});R.setPixelRatio(Math.min(devicePixelRatio,1.5));
+const S=new THREE.Scene();S.background=new THREE.Color(0x150826);S.fog=new THREE.FogExp2(0x1d0b36,.038);
+const cam=new THREE.PerspectiveCamera(70,1,.1,120);
+S.add(new THREE.HemisphereLight(0x8a5bff,0x1a0830,.9));
+const moon=new THREE.DirectionalLight(0x6ff0ff,.5);moon.position.set(-8,12,-10);S.add(moon);
+const M=(c,e)=>new THREE.MeshLambertMaterial({color:c,emissive:e||0x000000,flatShading:true});
+const add=(g,m,x,y,z,p)=>{const o=new THREE.Mesh(g,m);o.position.set(x,y,z);(p||S).add(o);return o};
+
+add(new THREE.CircleGeometry(40,48),M(0x1a0e2b),0,0,0).rotation.x=-Math.PI/2;
+const grid=new THREE.GridHelper(80,40,0xff2e9a,0x35f0ff);grid.position.y=.01;grid.material.transparent=true;grid.material.opacity=.22;S.add(grid);
+const pond=add(new THREE.CircleGeometry(4.2,32),new THREE.MeshBasicMaterial({color:0x0b4a66}),-7,.03,-2);pond.rotation.x=-Math.PI/2;
+for(let i=0;i<5;i++){const k=add(new THREE.BoxGeometry(.5,.05,.18),M(i%2?0xff7a2e:0xffffff,0x331100),-7+Math.cos(i*1.9)*2,.06,-2+Math.sin(i*1.9)*2);k.userData.a=i}
+/* pavilion */
+const lac=M(0xb3203a,0x2a0510);
+add(new THREE.BoxGeometry(8,.4,6),M(0x4a2a1a),0,.2,-9);
+[[-3.5,-11.5],[3.5,-11.5],[-3.5,-6.5],[3.5,-6.5]].forEach(([x,z])=>add(new THREE.CylinderGeometry(.18,.2,4,8),lac,x,2.4,z));
+const roof=add(new THREE.ConeGeometry(7,2.2,4),M(0x2a1840,0x120828),0,5.5,-9);roof.rotation.y=Math.PI/4;
+add(new THREE.BoxGeometry(7.4,.2,.2),lac,0,4.45,-6.5);
+for(let i=-1;i<=1;i++)add(new THREE.BoxGeometry(2.2,3.2,.08),new THREE.MeshBasicMaterial({color:0xffe6c4,transparent:true,opacity:.35}),i*2.4,2,-11.6);
+/* torii */
+[-2.4,2.4].forEach(x=>add(new THREE.CylinderGeometry(.22,.26,5,8),lac,x,2.5,4));
+add(new THREE.BoxGeometry(7.4,.4,.5),lac,0,5.1,4);add(new THREE.BoxGeometry(6,.25,.35),lac,0,4.2,4);
+/* lanterns */
+const lanterns=[];
+[[-3.5,-6.5],[3.5,-6.5],[-3.5,-11.5],[3.5,-11.5],[-2,2],[2,2],[-5,-4],[6,-5]].forEach(([x,z],i)=>{
+  const l=add(new THREE.SphereGeometry(.38,10,8),new THREE.MeshBasicMaterial({color:i%2?0xff7a2e:0xff2e9a}),x,3.1,z);lanterns.push(l);
+  if(i<3){const pl=new THREE.PointLight(i%2?0xff9a4e:0xff2e9a,1.2,14);pl.position.copy(l.position);S.add(pl)}});
+/* neon sign */
+const cv=document.createElement('canvas');cv.width=256;cv.height=256;const g=cv.getContext('2d');
+g.fillStyle='#0000';g.clearRect(0,0,256,256);g.font='170px DotGothic16,serif';g.textAlign='center';g.shadowColor='#ff2e9a';g.shadowBlur=24;g.fillStyle='#ffd0ec';g.fillText('覚',128,170);
+g.font='26px DotGothic16,monospace';g.shadowColor='#35f0ff';g.fillStyle='#bffaff';g.fillText('AWAKEN.EXE',128,225);
+const sign=add(new THREE.PlaneGeometry(4,4),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true}),0,8.2,-14);
+/* sakura */
+const N=260,pp=new Float32Array(N*3);for(let i=0;i<N*3;i+=3){pp[i]=(Math.random()-.5)*36;pp[i+1]=Math.random()*12;pp[i+2]=(Math.random()-.5)*36}
+const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pp,3));
+S.add(new THREE.Points(pg,new THREE.PointsMaterial({color:0xffb3d9,size:.16})));
+/* Miko */
+const miko=new THREE.Group();miko.position.set(0,.4,-6.8);S.add(miko);
+add(new THREE.CylinderGeometry(.28,.62,1.5,10),M(0xff2e9a,0x3a0820),0,.85,0,miko);
+add(new THREE.BoxGeometry(.6,.3,.5),M(0xffd24d,0x332200),0,1.15,0,miko);
+add(new THREE.SphereGeometry(.24,12,10),M(0xfff0e6,0x221018),0,1.85,0,miko);
+add(new THREE.SphereGeometry(.27,12,10),M(0x08040f),0,1.92,-.04,miko).scale.set(1,.85,1);
+add(new THREE.SphereGeometry(.14,8,8),M(0x08040f),0,2.25,-.02,miko);
+const pin=add(new THREE.CylinderGeometry(.015,.015,.5,4),M(0x35f0ff,0x35f0ff),.12,2.3,0,miko);pin.rotation.z=.8;
+const aura=add(new THREE.RingGeometry(.9,1,32),new THREE.MeshBasicMaterial({color:0x35f0ff,transparent:true,opacity:.5,side:2}),0,.05,-6.8);aura.rotation.x=-Math.PI/2;
+
+/* ---------- glow + core ---------- */
+const glowTex=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),r=x.createRadialGradient(32,32,0,32,32,32);r.addColorStop(0,'#fff');r.addColorStop(.3,'#fff5');r.addColorStop(1,'#0000');x.fillStyle=r;x.fillRect(0,0,64,64);return new THREE.CanvasTexture(c)})();
+lanterns.forEach(l=>{const g=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:l.material.color,blending:THREE.AdditiveBlending,transparent:true,depthWrite:false}));g.scale.setScalar(3.4);l.add(g)});
+const core=add(new THREE.IcosahedronGeometry(1.5,1),new THREE.MeshBasicMaterial({color:0x35f0ff,wireframe:true}),0,7,-9);
+[-1,1].forEach(i=>add(new THREE.CylinderGeometry(.05,.05,14,6),new THREE.MeshBasicMaterial({color:0x35f0ff,transparent:true,opacity:.35}),i*2.4,7,4));
+
+/* ---------- avatars ---------- */
+const STYLES=['geisha','ronin','ghost','fox'];
+function makeAvatar(c){
+  const g=new THREE.Group(),sk=M(c.skin,0x110808),ou=M(c.outfit,0x200010),ac=M(c.accent,c.accent),hr=M(c.hair),st=c.style;
+  add(st==='ghost'?new THREE.ConeGeometry(.6,1.7,10):st==='ronin'?new THREE.CylinderGeometry(.36,.52,1.5,6):new THREE.CylinderGeometry(.26,.58,1.5,10),ou,0,.8,0,g);
+  add(new THREE.BoxGeometry(.64,.24,.52),ac,0,1.15,0,g);
+  add(new THREE.SphereGeometry(.25,12,10),st==='ghost'?M(0xffffff,0x6ff0ff):sk,0,1.82,0,g);
+  add(new THREE.BoxGeometry(.08,.05,.05),ac,-.1,1.84,.22,g);add(new THREE.BoxGeometry(.08,.05,.05),ac,.1,1.84,.22,g);
+  if(st==='geisha'){add(new THREE.SphereGeometry(.28,12,10),hr,0,1.9,-.05,g).scale.y=.8;add(new THREE.SphereGeometry(.14,8,8),hr,0,2.28,-.03,g);add(new THREE.CylinderGeometry(.015,.015,.5,4),ac,.14,2.3,0,g).rotation.z=.8}
+  if(st==='ronin'){add(new THREE.ConeGeometry(.62,.4,12),hr,0,2.15,0,g);add(new THREE.BoxGeometry(.5,.2,.1),ac,0,1.6,.3,g)}
+  if(st==='fox'){add(new THREE.ConeGeometry(.1,.3,4),hr,-.15,2.15,0,g);add(new THREE.ConeGeometry(.1,.3,4),hr,.15,2.15,0,g);add(new THREE.BoxGeometry(.4,.3,.06),M(0xffffff,0x222222),0,1.8,.25,g)}
+  if(st==='ghost')add(new THREE.TorusGeometry(.4,.02,6,20),ac,0,2.35,0,g).rotation.x=Math.PI/2;
+  return g}
+function tag(t,col){const c=document.createElement('canvas');c.width=256;c.height=48;const x=c.getContext('2d');x.fillStyle='#000a';x.fillRect(0,0,256,48);x.font='26px DotGothic16,monospace';x.textAlign='center';x.fillStyle=col||'#35f0ff';x.fillText(t,128,33);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),depthTest:false}));s.scale.set(1.8,.34,1);s.position.y=2.75;return s}
+
+/* ---------- worlds (AGENT: load from server; creator text must be sanitized) ---------- */
+const WORLDS=[
+{id:'lounge',name:'AWAKEN Lounge',by:'AWAKEN',official:1,desc:'The official arrival garden. Meet people, ask Miko about the link.',pop:7,fog:0x1d0b36,bg:0x150826,grid:0xffffff},
+{id:'koi',name:'Koi Hours',by:'mizu',desc:'A quiet teal pond for late-night talkers.',pop:4,fog:0x06222c,bg:0x04141c,grid:0x66ffee},
+{id:'alley',name:'Rain Alley 404',by:'vexx',desc:'Neon back street. Loud, red, slightly dangerous.',pop:9,fog:0x2c0610,bg:0x1c040a,grid:0xff5555},
+{id:'new',name:'Create a world',by:'you',desc:'Creator tools are coming. Your name, your build, your door in this list.',pop:0,locked:1}];
+let sel=WORLDS[0],tab='w',term=true,camMode='third',prev,me,ped;
+function theme(w){S.background.set(w.bg);S.fog.color.set(w.fog);grid.material.color.set(w.grid)}
+
+/* ---------- network seam (AGENT: replace the simulation with a WebSocket room per world.id) ---------- */
+const NAMES=['mizu','koharu','nullbyte','sable','ren','kitsune','static','momo','vexx'],LINES=['anyone else hear that hum?','miko remembers everyone','new here? talk to miko by the pavilion','lag again lol','this place feels more real than the rain outside','the sign flickered','somebody is tracing links tonight','i never log off from here'];
+const pick_=a=>a[Math.random()*a.length|0];
+const Net={peers:new Map(),onChat:null,
+ join(w){this.leave();for(let i=0;i<Math.min(w.pop,7);i++){const c={name:NAMES[i],style:pick_(STYLES),skin:pick_(['#fff0e6','#c98f66','#8a5a3c','#cfe8ff']),outfit:pick_(['#ff2e9a','#35f0ff','#ffb347','#7a5cff','#e8e8f0']),accent:pick_(['#35f0ff','#ff2e9a','#ffd24d']),hair:pick_(['#08040f','#e8e8f0','#ff2e9a'])};
+  const a=makeAvatar(c);a.add(tag(c.name));a.position.set((Math.random()-.5)*20,0,-3+Math.random()*6);S.add(a);this.peers.set(i,{a,c,tx:a.position.x,tz:a.position.z,t:0})}},
+ leave(){this.peers.forEach(p=>S.remove(p.a));this.peers.clear()},
+ send(txt){/* ws.send({type:'chat',text:txt}) */},
+ tick(dt,T){this.peers.forEach(p=>{const dx=p.tx-p.a.position.x,dz=p.tz-p.a.position.z,d=Math.hypot(dx,dz);
+  if(d<.3){p.t-=dt;p.a.position.y=0;if(p.t<0){p.tx=(Math.random()-.5)*22;p.tz=-4+Math.random()*12;p.t=2+Math.random()*5}}
+  else{p.a.position.x+=dx/d*1.6*dt;p.a.position.z+=dz/d*1.6*dt;p.a.rotation.y=Math.atan2(dx,dz);p.a.position.y=Math.abs(Math.sin(T*7))*.05}});
+  if(live&&this.peers.size&&Math.random()<dt*.15){const p=pick_([...this.peers.values()]);this.onChat&&this.onChat(p.c.name,pick_(LINES))}}};
+function addChat(n,t){const p=document.createElement('p'),b=document.createElement('b');b.textContent=n+': ';p.append(b,document.createTextNode(t));$('log').append(p);while($('log').children.length>6)$('log').firstChild.remove()}
+Net.onChat=addChat;
+$('cin').onkeydown=e=>{if(e.key==='Enter'&&e.target.value.trim()){const t=e.target.value.trim().slice(0,120);addChat(cfg.name,t);Net.send(t);e.target.value=''}};
+
+/* ---------- terminal UI ---------- */
+function choose(w){sel=w;theme(w);Net.join(w);pane()}
+function rebuildPrev(){if(prev)S.remove(prev);prev=makeAvatar(cfg);prev.add(tag(cfg.name,'#ff2e9a'));prev.position.set(0,.12,5.5);prev.visible=term;S.add(prev)}
+function rebuildMe(){if(me)S.remove(me);me=makeAvatar(cfg);S.add(me)}
+function row(p,label,key,list){const l=document.createElement('label');l.textContent=label;const d=document.createElement('div');d.className='sw';list.forEach(c=>{const i=document.createElement('i');i.style.background=c;if(cfg[key]===c)i.className='on';i.onclick=()=>{cfg[key]=c;saveCfg();rebuildPrev();pane()};d.append(i)});p.append(l,d)}
+function pane(){const p=$('pane');p.replaceChildren();$('tw').className=tab==='w'?'on':'';$('ta').className=tab==='a'?'on':'';
+ if(tab==='w'){WORLDS.forEach(w=>{const d=document.createElement('div');d.className='w'+(w===sel?' on':'');d.innerHTML=`<b>${w.name}</b>${w.official?' <small>OFFICIAL</small>':''}<br><small>by ${w.by}${w.locked?'':' · '+(w.pop+1)+' online'}</small><div style="font-size:13px;margin-top:4px">${w.desc}</div>`;if(w.locked)d.style.opacity=.55;else d.onclick=()=>choose(w);p.append(d)});return}
+ const l=document.createElement('label');l.textContent='Handle';const i=document.createElement('input');i.maxLength=14;i.value=cfg.name;i.oninput=()=>{cfg.name=i.value.toUpperCase();saveCfg()};i.onchange=rebuildPrev;
+ const sl=document.createElement('label');sl.textContent='Style';const sd=document.createElement('div');sd.className='sty';
+ STYLES.forEach(s_=>{const b=document.createElement('button');b.textContent=s_;if(cfg.style===s_)b.className='on';b.onclick=()=>{cfg.style=s_;saveCfg();rebuildPrev();pane()};sd.append(b)});
+ p.append(l,i,sl,sd);row(p,'Outfit','outfit',['#ff2e9a','#35f0ff','#ffb347','#7a5cff','#e8e8f0','#ff3b3b']);row(p,'Accent / eyes','accent',['#35f0ff','#ff2e9a','#ffd24d','#7dff9a','#ffffff']);row(p,'Skin','skin',['#fff0e6','#f2c9a5','#c98f66','#8a5a3c','#5a3a2a','#cfe8ff']);row(p,'Hair / hat','hair',['#08040f','#5a2a1a','#e8e8f0','#ff2e9a','#35f0ff','#ffd24d'])}
+$('tw').onclick=()=>{tab='w';pane()};$('ta').onclick=()=>{tab='a';pane()};
+function toggleView(){camMode=camMode==='third'?'first':'third'}
+function toTerminal(){live=false;talking=false;term=true;$('hud').style.display='none';$('dlg').style.display='none';$('end').style.display='none';$('boot').style.display='block';prev.visible=ped.visible=true;me.visible=false;Net.join(sel)}
+$('view').onclick=toggleView;$('exit').onclick=toTerminal;$('toTerm').onclick=toTerminal;
+
+/* ---------- state ---------- */
+let yaw=0,pitch=0,px=0,pz=9,keys={},sx=0,sy=0,drag=null,live=false,talking=false,aff=0,t0=0,shake=0,breach=false;
+function size(){R.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()}addEventListener('resize',size);size();
+$('sig').innerHTML=[6,9,12,15].map(h=>`<b style="height:${h}px"></b>`).join('');
+const hearts=()=>{const n=Math.round(aff/20);$('hearts').textContent='♥'.repeat(n)+'♡'.repeat(5-n)};
+
+/* ---------- input ---------- */
+addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.code==='KeyV'&&live)toggleView();if(e.code==='KeyE'&&live&&!talking&&near())startTalk();keys[e.code]=1});
+addEventListener('keyup',e=>keys[e.code]=0);
+const cvs=$('gl');cvs.addEventListener('pointerdown',e=>{drag={id:e.pointerId,x:e.clientX,y:e.clientY};cvs.setPointerCapture(e.pointerId)});
+cvs.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;yaw-=(e.clientX-drag.x)*.005;pitch=Math.max(-.6,Math.min(.6,pitch-(e.clientY-drag.y)*.004));drag.x=e.clientX;drag.y=e.clientY});
+cvs.addEventListener('pointerup',()=>drag=null);
+const st=$('stick'),nb=$('nub');
+function stk(e){const r=st.getBoundingClientRect(),x=e.clientX-r.left-58,y=e.clientY-r.top-58,l=Math.max(1,Math.hypot(x,y)),f=Math.min(40,l)/l;sx=x*f/40;sy=y*f/40;nb.style.transform=`translate(${x*f}px,${y*f}px)`}
+st.addEventListener('pointerdown',e=>{st.setPointerCapture(e.pointerId);stk(e)});
+st.addEventListener('pointermove',e=>{if(st.hasPointerCapture(e.pointerId))stk(e)});
+const rs=()=>{sx=sy=0;nb.style.transform=''};st.addEventListener('pointerup',rs);st.addEventListener('pointercancel',rs);
+
+/* ---------- dialogue ---------- */
+const H=()=>handle.toUpperCase();
+const D={
+n0:()=>({t:`You came back, ${H()}. The garden only blooms while someone is watching it.`,c:[['I wasn’t sure this place was real.','n1',10],['Who are you, really?','n2',5],['I need to get away from out there.','n3',15]]}),
+n1:{t:'Real is a question of bandwidth. Your pulse is real. Mine is a few kilobytes. Does that matter to you?',c:[['Not at all.','n4',15],['It probably should.','n4',0]]},
+n2:{t:'I’m whatever the program makes me, and a little more each night you stay.',c:[['Then stay a little longer.','n4',10],['Let me hear the garden.','n4',5]]},
+n3:{t:'Then leave it at the gate. Nothing that hurts you can walk under that torii.',c:[['Promise?','n4',15],['Nothing?','n4',5]]},
+n4:{t:'Sit with me. Watch the petals fall. The lanterns burn brighter when you’re close.',c:[['Take her hand.','n5',20],['Keep watching.','n5',10]]},
+n5:{t:'…Someone followed you in. Their signal is wrong. Cold. They’re tracing your link.',c:[['Stay linked.','e1',0],['Jack out.','e2',0]],breach:1}};
+function show(id){
+  const n=typeof D[id]==='function'?D[id]():D[id];aff=Math.min(100,aff);hearts();
+  $('line').textContent=n.t;const box=$('choices');box.replaceChildren();
+  if(n.breach)glitch();
+  n.c.forEach(([txt,next,a])=>{const b=document.createElement('button');b.className='btn';b.textContent=txt;b.onclick=()=>{aff+=a;hearts();next[0]==='e'?finish(next):show(next)};box.append(b)});
+}
+function startTalk(){talking=true;$('talk').style.display='none';$('dlg').style.display='block';show('n0')}
+function glitch(){breach=true;$('flash').style.animation='none';$('flash').style.opacity=.55;document.body.classList.add('glitch');shake=1.2;
+  setTimeout(()=>{document.body.classList.remove('glitch');$('flash').style.opacity=0},900)}
+function finish(k){
+  $('dlg').style.display='none';talking=false;live=false;$('hud').style.display='none';
+  const hold=k==='e1';
+  $('endT').textContent=hold?(aff>=70?'LINK HELD':'LINK UNSTABLE'):'JACKED OUT';
+  $('endP').textContent=hold?(aff>=70?'You stay. The stranger’s signal burns out against the gate. Miko’s hand is warm, and nobody can say whose pulse that is.':'You stay, but the link frays. Miko smiles as the garden tears apart in pink static. Come back sooner.')
+    :'The jack slides out. Rain on the window, one cold apartment. In your ear, still faint: “come back.”';
+  $('endT').className=hold?'':'warn';$('end').style.display='grid';
+}
+
+/* ---------- flow ---------- */
+function near(){return Math.hypot(px-miko.position.x,pz-miko.position.z)<3.6}
+function jackIn(){
+  handle=cfg.name=(cfg.name.trim()||'WANDERER').slice(0,14);saveCfg();
+  $('boot').style.display='none';$('end').style.display='none';const L=$('link');L.style.display='grid';
+  const steps=['HANDSHAKE','MAPPING NERVES','LOADING MIKO.EXE','OPENING GARDEN'];let p=0;
+  const iv=setInterval(()=>{p+=4;$('fill').style.width=p+'%';$('linkTxt').textContent=steps[Math.min(3,p/25|0)]+' … '+p+'%';
+    if(p>=100){clearInterval(iv);L.style.display='none';enter()}},90);
+}
+function enter(){px=0;pz=9;yaw=0;pitch=0;aff=0;breach=false;talking=false;live=true;t0=performance.now();hearts();term=false;prev.visible=ped.visible=false;rebuildMe();$('wname').textContent='庭 '+sel.name.toUpperCase();$('log').replaceChildren();addChat('SYSTEM','linked to '+sel.name);$('hud').style.display='block';$('hint').style.display=matchMedia('(pointer:coarse)').matches?'none':'block'}
+$('jack').onclick=jackIn;$('again').onclick=jackIn;$('talk').onclick=startTalk;
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function loop(now){
+  const dt=Math.min((now-last)/1000,.05);last=now;const T=now/1000;let mv=0;
+  if(live&&!talking){
+    const f=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0)-sy,r=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0)+sx,n=Math.max(1,Math.hypot(f,r)),v=4.2*dt/n;mv=Math.hypot(f,r)>.1;
+    px+=(-Math.sin(yaw)*f+Math.cos(yaw)*r)*v;pz+=(-Math.cos(yaw)*f-Math.sin(yaw)*r)*v;
+    const d=Math.hypot(px,pz);if(d>24){px*=24/d;pz*=24/d}
+    $('talk').style.display=near()?'block':'none';
+    const s=((now-t0)/1000)|0;$('clock').textContent=String(s/60|0).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+    $('pop').textContent='● '+(Net.peers.size+1)+' online'}
+  shake=Math.max(0,shake-dt);
+  if(live){const third=camMode==='third',b=third?4.4:0;
+    cam.position.set(px+Math.sin(yaw)*b+(Math.random()-.5)*shake*.15,(third?2.7:1.65)+Math.sin(T*8)*(mv&&!third?.03:0),pz+Math.cos(yaw)*b);
+    cam.rotation.set(pitch-(third?.2:0),yaw,0,'YXZ');
+    me.visible=third;me.position.set(px,mv?Math.abs(Math.sin(T*8))*.06:0,pz);me.rotation.y=yaw+Math.PI}
+  else{cam.position.set(Math.sin(T*.2)*1.5,1.6,10);cam.lookAt(0,.2,5.5);if(prev)prev.rotation.y=T*.7}
+  miko.rotation.y=Math.atan2(px-miko.position.x,pz-miko.position.z);miko.position.y=.4+Math.sin(T*1.6)*.03;
+  aura.material.opacity=.3+Math.sin(T*3)*.2+(near()?.3:0);core.rotation.y=T*.5;core.rotation.x=T*.3;
+  lanterns.forEach((l,i)=>l.scale.setScalar(1+Math.sin(T*2+i)*.06+(breach&&Math.random()<.2?-.4:0)+aff/400));
+  sign.material.opacity=breach&&Math.random()<.3?.2:1;
+  Net.tick(dt,T);
+  const a=pg.attributes.position;for(let i=0;i<N;i++){a.array[i*3+1]-=dt*(.6+(i%5)*.12);a.array[i*3]+=Math.sin(T+i)*dt*.3;if(a.array[i*3+1]<0)a.array[i*3+1]=12}a.needsUpdate=true;
+  R.render(S,cam);requestAnimationFrame(loop);
+}
+ped=add(new THREE.CylinderGeometry(1,1.1,.12,24),new THREE.MeshBasicMaterial({color:0x35f0ff}),0,.06,5.5);
+rebuildPrev();choose(WORLDS[0]);requestAnimationFrame(loop);
+</script></body></html>
