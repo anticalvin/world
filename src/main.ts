@@ -1,3 +1,4 @@
+import { clampLoungeXZ, FALL_RESPAWN_Y } from "./sdk/lounge-bounds";
 import * as T from "three";
 import { worlds } from "./sdk/worlds";
 import { validateManifest, type WorldManifest } from "./sdk/manifest";
@@ -521,6 +522,21 @@ function distance(
 }
 function game() {
   const p = hero.state.position;
+  if (p.y < FALL_RESPAWN_Y) {
+    const spawnName = Object.keys(w.spawns)[0];
+    start(w, spawnName);
+    note = "SIGNAL LOST · RESPAWNED";
+    return;
+  }
+  if (w.id === "awaken-lounge") {
+    const edge = clampLoungeXZ(p.x, p.z);
+    if (edge.x !== p.x || edge.z !== p.z) {
+      // Move the physics capsule, not only the rendered avatar.
+      hero.body.setTranslation({x:edge.x,y:p.y,z:edge.z},true);
+      hero.state.position = {x:edge.x,y:p.y,z:edge.z};
+      hero.state.velocity.x = hero.state.velocity.z = 0;
+    }
+  }
   for (const portal of w.portals)
     if (distance(p, portal.position) < portal.radius) {
       const next = worlds.find((x) => x.id === portal.targetWorld);

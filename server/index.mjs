@@ -1,3 +1,4 @@
+import { LOUNGE_WALKABLE_RADIUS } from "../src/sdk/lounge-bounds.mjs";
 import { createServer } from "node:http";
 import { Server, Room } from "colyseus";
 import { Schema, MapSchema, defineTypes } from "@colyseus/schema";
@@ -5,7 +6,7 @@ import { Schema, MapSchema, defineTypes } from "@colyseus/schema";
 const PORT = Number(process.env.PORT || 2567);
 const CAPACITY = 16;
 const MAX_INPUTS_PER_SECOND = 30;
-const WORLD_RADIUS = 24;
+const WORLD_RADIUS = LOUNGE_WALKABLE_RADIUS;
 const INPUT_TIMEOUT_MS = 250;
 const CHAT_COOLDOWN_MS = 850;
 const JOIN_WINDOW_MS = 10_000;
