@@ -1,0 +1,2 @@
+import {describe,it,expect}from'vitest';import{createCourse,courseEnter,checkpoint,finish,restart}from'../src/game/course';
+describe('Neon Traverse',()=>{it('requires ordered checkpoints before finish and preserves a personal best',()=>{let s=createCourse();courseEnter(s,1000);finish(s,2000);expect(s.finished).toBe(false);checkpoint(s,2);expect(s.checkpoint).toBe(0);checkpoint(s,1);checkpoint(s,2);finish(s,5000);expect(s.elapsed).toBe(4000);expect(s.best).toBe(4000);s=restart(s);courseEnter(s,7000);checkpoint(s,1);checkpoint(s,2);finish(s,9000);expect(s.best).toBe(2000)})});

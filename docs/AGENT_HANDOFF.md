@@ -1,9 +1,9 @@
-# AWAKEN Engine 1.1 handoff
+# AWAKEN Engine 1.2 handoff
 
 ## Verified
 
 - `npm run build` succeeds.
-- `npm test` passes 5 deterministic tests.
+- `npm test` passes 6 deterministic tests, including ordered course checkpoints and personal bests.
 - Playwright browser tests pass at 1280×800 and 390×844. They verify terminal load, entering the Lounge, camera toggle, and movement input.
 - The production browser build is local-bundled; Three.js and Rapier have no CDN runtime dependency.
 
@@ -14,6 +14,9 @@
 - `src/movement/rapier-controller.ts`: Rapier WASM capsule controller, collision and stairs/ground snap.
 - `src/sdk/manifest.ts`: versioned safe Experience SDK schema and validator.
 - `src/sdk/worlds.ts`: three examples. AWAKEN Lounge is protected (`build: none`); Neon Traverse is the small obstacle course; DELTA-9 is the arena shell.
+- `src/avatar/avatar.ts`: four procedural avatars, safe GLB 2.0 validation/normalization, and IndexedDB persistence.
+- `src/avatar/animation.ts`: uses Rapier velocity/ground state for procedural or compatible GLB animation states.
+- `src/game/course.ts`: deterministic Neon Traverse timer/checkpoint/personal-best logic.
 - `tests/movement.test.ts` and `tests/browser/awaken.spec.ts`: test coverage.
 
 ## Critical product invariants
@@ -22,7 +25,7 @@ Do not claim local sessions are multiplayer. Do not run creator-supplied JavaScr
 
 ## Next work
 
-1. Re-port the original GLB IndexedDB importer and customization controls into `src/main.ts`; test with a real fixture GLB.
+1. Add a committed real GLB test fixture to cover successful browser-side import and restore; current import validation is unit-level and the browser suite does not upload a fixture.
 2. Replace simple obstacle meshes with manifest asset URLs plus an explicit server-side asset validation pipeline.
 3. Split Rapier into an experience-runtime chunk to reduce the 956 KB gzip initial JavaScript payload.
 4. Add a genuine mobile thumbstick and physical-device check; the current mobile browser viewport test verifies layout/input safety but is not a physical handset test.
