@@ -89,3 +89,17 @@ test("Avatar Studio saves a wardrobe preset", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "AWAKEN" })).toBeVisible();
   await page.screenshot({ path: "test-results/avatar-studio.png" });
 });
+
+test("mobile chat starts closed and can be toggled without blocking movement", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "JACK IN" }).click();
+  const chat = page.locator("#lounge-chat");
+  await expect(chat).toBeHidden();
+  await page.locator("#chat-toggle").click();
+  await expect(chat).toBeVisible();
+  await page.locator("#chat-toggle").click();
+  await expect(chat).toBeHidden();
+  await expect(page.locator("#mjump")).toBeVisible();
+  await expect(page.locator("#stick")).toBeVisible();
+});
