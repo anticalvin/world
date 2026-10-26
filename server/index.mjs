@@ -1,4 +1,4 @@
-import { LOUNGE_WALKABLE_RADIUS } from "../src/sdk/lounge-bounds.ts";
+import { LOUNGE_WALKABLE_RADIUS } from "../src/sdk/lounge-bounds.mjs";
 import { createServer } from "node:http";
 import { Server, Room } from "colyseus";
 import { Schema, MapSchema, defineTypes } from "@colyseus/schema";
