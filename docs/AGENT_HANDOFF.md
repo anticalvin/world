@@ -39,4 +39,8 @@ The renderer must be resized from `visualViewport` as well as window resize even
 
 ## Multiplayer scope
 
-Only built-in avatar style strings are accepted remotely. Imported GLBs and IndexedDB files are local-only and must never be fetched from another browser. The next server milestone is shared Rapier movement validation and a two-client integration test, followed by explicit connection/offline UI in the client.
+The Lounge client is now wired to the Colyseus server through `src/network/lounge-client.ts`. It sends only bounded sequenced input and text, renders built-in remote avatars with nameplates, removes them on disconnect, and has an explicit offline local-session fallback. Playwright verifies two independent clients join, move, chat, disconnect, and reconnect. Imported GLBs and IndexedDB files remain local-only and must never be fetched from another browser. The next server milestone is shared Rapier movement validation; this first network motor is intentionally flat-Lounge only.
+
+## Avatar Studio v1.4
+
+`src/avatar/avatar.ts` owns the versioned V2 appearance, legacy `awaken-avatar-v12` migration, constrained multiplayer appearance, articulated procedural rig, and local preset persistence. Remote players are constructed exclusively from their sanitized remote appearance—never from the local config. The Studio currently uses the live renderer as its preview; isolated preview rendering and undo history remain follow-up work.
