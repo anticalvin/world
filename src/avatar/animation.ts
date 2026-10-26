@@ -39,7 +39,7 @@ export class AvatarAnimator {
     if (this.root.userData.procedural) {
       this.root.rotation.z = this.state === "slide" ? 0.35 : 0;
       this.root.position.y =
-        Math.sin(performance.now() * 0.012) *
+        Math.max(0, Math.sin(performance.now() * 0.012)) *
         (this.state === "idle" ? 0.025 : speed > 0.3 ? 0.045 : 0);
       const swing =
         this.state === "walk" || this.state === "run"
