@@ -159,12 +159,13 @@ const part = (
   x: number,
   y: number,
   z: number,
+  meshOffsetY = 0,
 ) => {
   const p = new THREE.Group();
   p.name = name;
   p.position.set(x, y, z);
   const mesh = new THREE.Mesh(g, m);
-  mesh.position.y = -0.32;
+  mesh.position.y = meshOffsetY;
   p.add(mesh);
   root.add(p);
   return p;
@@ -208,19 +209,11 @@ export function builtIn(input: AvatarConfig) {
     ["LEFT", -0.48],
     ["RIGHT", 0.48],
   ] as const) {
-    const upper = part(root, `${side}_UPPER_ARM`, limb, cloth, x, 1.62, 0);
-    part(upper, `${side}_LOWER_ARM`, limb, skin, 0, -0.62, 0);
-    part(root, `${side}_UPPER_LEG`, limb, cloth, x * 0.55, 0.68, 0);
-    part(root, `${side}_LOWER_LEG`, limb, accent, x * 0.55, 0.05, 0);
-    part(
-      root,
-      `${side}_FOOT`,
-      box(0.26, 0.16, 0.38),
-      accent,
-      x * 0.55,
-      -0.35,
-      0.1,
-    );
+    const upper = part(root, `${side}_UPPER_ARM`, limb, cloth, x, 1.61, 0, -0.36);
+    part(upper, `${side}_LOWER_ARM`, limb, skin, 0, -0.69, 0, -0.36);
+    const thigh = part(root, `${side}_UPPER_LEG`, limb, cloth, x * 0.55, 0.91, 0, -0.36);
+    const shin = part(thigh, `${side}_LOWER_LEG`, limb, accent, 0, -0.69, 0, -0.36);
+    part(shin, `${side}_FOOT`, box(0.26, 0.16, 0.38), accent, 0, -0.69, 0.1);
   }
   const socket = (name: string, x: number, y: number, z: number) => {
     const q = new THREE.Group();
@@ -247,18 +240,46 @@ export function builtIn(input: AvatarConfig) {
       0.03,
       0,
     );
-  if (c.hat !== "none")
-    part(
-      head,
-      "HAT",
-      c.hat === "crown"
-        ? new THREE.CylinderGeometry(0.27, 0.27, 0.18, 6)
-        : new THREE.CylinderGeometry(0.34, 0.3, 0.18, 10),
-      accent,
-      0,
-      0.28,
-      0,
-    );
+  // Hats are authored around the head-top socket. No generic limb offset:
+  // previously every hat sat 0.32 units below its intended anchor.
+  if (c.hat !== "none") {
+    const hat = new THREE.Group();
+    hat.name = "HAT";
+    head.add(hat);
+    const addHatMesh = (geometry: THREE.BufferGeometry, material: THREE.Material, y: number) => {
+      const piece = new THREE.Mesh(geometry, material);
+      piece.position.y = y;
+      hat.add(piece);
+    };
+    if (c.hat === "cap") {
+      addHatMesh(new THREE.CylinderGeometry(0.29, 0.31, 0.16, 12), cloth, 0.09);
+      const brim = new THREE.Mesh(box(0.48, 0.045, 0.22), accent);
+      brim.position.set(0, 0.025, 0.31);
+      hat.add(brim);
+    } else if (c.hat === "beanie") {
+      addHatMesh(new THREE.SphereGeometry(0.31, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), cloth, 0.0);
+      addHatMesh(new THREE.CylinderGeometry(0.31, 0.31, 0.09, 12), accent, 0.025);
+    } else if (c.hat === "halo") {
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.045, 8, 24), accent);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.y = 0.32;
+      hat.add(ring);
+    } else if (c.hat === "crown") {
+      addHatMesh(new THREE.CylinderGeometry(0.29, 0.29, 0.13, 8), accent, 0.12);
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        const tip = new THREE.Mesh(new THREE.ConeGeometry(0.075, 0.17, 4), accent);
+        tip.position.set(Math.cos(a) * 0.24, 0.28, Math.sin(a) * 0.24);
+        hat.add(tip);
+      }
+    }
+    // A full bob/bun/mohawk and a close-fitting hat occupy the same space.
+    // Hide procedural hair only for fitted hats; keep it for halo/crown.
+    if (c.hat === "cap" || c.hat === "beanie") {
+      const hairMesh = head.getObjectByName("HAIR");
+      if (hairMesh) hairMesh.visible = false;
+    }
+  }
   if (c.glasses !== "none")
     part(
       face,
