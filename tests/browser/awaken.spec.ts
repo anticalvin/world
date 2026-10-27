@@ -56,6 +56,8 @@ test("two real browser clients meet, move, chat, disconnect and reconnect", asyn
       beta.evaluate(() => (window as any).__AWAKEN_DEBUG?.remotePosition?.z),
     )
     .not.toBe(before);
+  await alpha.locator("#chat-toggle").click();
+  await beta.locator("#chat-toggle").click();
   await alpha.getByRole("textbox", { name: "Lounge chat" }).fill("hello beta");
   await alpha.getByRole("button", { name: "SEND" }).click();
   await expect(beta.getByText("WANDERER: hello beta")).toBeVisible();
