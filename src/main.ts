@@ -182,7 +182,7 @@ chatToggle.style.display = "none";
 let chatOpen = false;
 function toggleChat(open = !chatOpen) {
   chatOpen = open;
-  chatPanel.style.display = open && w.id === "awaken-lounge" && active ? "block" : "none";
+  chatPanel.style.display = liveChatConfigured && open && w.id === "awaken-lounge" && active ? "block" : "none";
   chatToggle.setAttribute("aria-expanded", String(open));
   chatToggle.textContent = open ? "CLOSE CHAT" : "CHAT";
   if (!open) chatText.blur();
