@@ -152,6 +152,7 @@ chatSend.textContent = "SEND";
 chatForm.append(chatText, chatSend);
 chatPanel.append(networkStatus, chatLog, chatForm);
 hud.append(chatToggle, chatPanel);
+chatToggle.style.display = "none";
 let chatOpen = false;
 function toggleChat(open = !chatOpen) {
   chatOpen = open;
@@ -506,6 +507,7 @@ function start(x: WorldManifest, spawn?: string) {
   if (x.id === "neon-course") course = restart(course);
   toggleChat(false);
   chatToggle.style.display = x.id === "awaken-lounge" ? "block" : "none";
+  chatPanel.style.display = "none";
   if (x.id === "awaken-lounge")
     lounge.connect({
       name: cfg.name,
@@ -569,6 +571,8 @@ function game() {
 function exitToMenu() {
   active = false;
   toggleChat(false);
+  chatToggle.style.display = "none";
+  chatPanel.style.display = "none";
   stickReset();
   mobileRun = false;
   keys.clear();
