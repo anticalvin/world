@@ -8,7 +8,8 @@ Prerequisites: Node.js 22, npm, and Playwright Chromium. The Colyseus server run
 
 ```sh
 npm ci
-npx playwright install chromium
+npm --prefix server ci
+npx playwright install --with-deps chromium
 npm run server
 # In another terminal:
 VITE_AWAKEN_WS_URL=ws://127.0.0.1:2567 npm run dev
