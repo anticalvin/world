@@ -123,11 +123,11 @@ const boxer = createBoxer();
 let lastPunch: Hand | null = null;
 let punchUntil = 0;
 const fightControls = document.createElement("div");
-fightControls.style.cssText = "display:none;position:absolute;right:12px;bottom:22px;gap:10px;pointer-events:auto";
+fightControls.style.cssText = "display:none;position:absolute;right:12px;bottom:172px;gap:8px;pointer-events:auto";
 for (const hand of ["left","right"] as const) {
   const b = document.createElement("button");
   b.className = "btn"; b.textContent = hand === "left" ? "LEFT JAB" : "RIGHT CROSS";
-  b.style.cssText = "min-width:100px;min-height:64px;font-weight:bold";
+  b.style.cssText = "min-width:84px;min-height:56px;font-weight:bold";
   b.onclick = () => strike(hand);
   fightControls.append(b);
 }
@@ -722,11 +722,7 @@ function loop(now: number) {
   if (active) {
     if (w.id === "delta-9") {
       tickBoxer(boxer, dt);
-      if (lastPunch) {
-        const arm = model.getObjectByName(lastPunch === "left" ? "LEFT_UPPER_ARM" : "RIGHT_UPPER_ARM");
-        if (arm && performance.now() < punchUntil) arm.rotation.x = -1.45;
-        else lastPunch = null;
-      }
+
     }
     acc = Math.min(0.12, acc + dt);
     while (acc >= TICK) {
@@ -760,6 +756,11 @@ function loop(now: number) {
         (remote.yaw - remote.root.rotation.y) * Math.min(1, dt * 11);
     }
     an.update(hero.state, dt);
+    if (w.id === "delta-9" && lastPunch) {
+      const arm = model.getObjectByName(lastPunch === "left" ? "LEFT_UPPER_ARM" : "RIGHT_UPPER_ARM");
+      if (arm && performance.now() < punchUntil) arm.rotation.x = -1.05;
+      else lastPunch = null;
+    }
     follow(hero.state.position, dt);
     game();
     where.textContent = `${w.identity.name} · ${cfg.name} · ${an.state.toUpperCase()}`;
