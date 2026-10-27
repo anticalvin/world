@@ -54,9 +54,9 @@ const safeChat = (value) =>
     .slice(0, 120);
 const options = {
   body: ["blocky", "stylized"],
-  hair: ["bob", "mohawk", "bun"],
-  top: ["jacket", "hoodie", "armor"],
-  pants: ["cargo", "skirt", "shorts"],
+  hair: ["twists", "buzz", "afro", "braids", "bald", "bob", "mohawk", "bun"],
+  top: ["tee", "tank", "hoodie", "jacket", "armor"],
+  pants: ["cargo", "jeans", "shorts", "skirt"],
   shoes: ["boots", "sneakers", "sandals"],
   hat: ["none", "cap", "beanie", "halo", "crown"],
   glasses: ["none", "round", "visor"],
