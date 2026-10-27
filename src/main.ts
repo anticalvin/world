@@ -1,3 +1,4 @@
+import { mountCharacterStudio } from "./avatar/character-studio";
 import { createBoxer, tickBoxer, punch, ringPosition, type Hand } from "./game/boxing";
 import { clampLoungeXZ, FALL_RESPAWN_Y } from "./sdk/lounge-bounds";
 import * as T from "three";
@@ -241,116 +242,34 @@ function menu() {
   play.onclick = () => { if (physicsReady) start(w); };
   boot.append(h, list, studio, play);
 }
-let studioDraft: AvatarConfig | null = null;
+let studioCleanup: (() => void) | null = null;
 function openStudio() {
-  const draft = studioDraft ?? (studioDraft = { ...cfg });
-  boot.replaceChildren();
-  const h = document.createElement("h1");
-  h.textContent = "AVATAR STUDIO";
-  const name = document.createElement("input");
-  name.value = draft.name;
-  name.setAttribute("aria-label", "Display name");
-  name.oninput = () => (draft.name = name.value.toUpperCase());
-  const grid = document.createElement("div");
-  grid.className = "worlds";
-  const select = (
-    label: string,
-    key: keyof typeof draft,
-    choices: readonly string[],
-  ) => {
-    const row = document.createElement("div");
-    row.textContent = label + " ";
-    for (const choice of choices) {
-      const b = document.createElement("button");
-      b.className = "btn";
-      b.textContent = choice;
-      b.onclick = () => {
-        (draft as any)[key] = choice;
-        setAvatar(builtIn(sanitizeAvatar(draft)));
-        openStudio();
-      };
-      row.append(b);
-    }
-    grid.append(row);
-  };
-  select("BODY", "body", BODY);
-  select("HAIR", "hair", HAIR);
-  select("TOP", "top", TOPS);
-  select("PANTS", "pants", PANTS);
-  select("SHOES", "shoes", SHOES);
-  select("HAT", "hat", HATS);
-  select("GLASSES", "glasses", GLASSES);
-  select("MASK", "mask", MASKS);
-  select("BACKPACK", "backpack", BACKPACKS);
-  for (const key of ["outfit", "accent", "skin", "hairColor"] as const) {
-    const input = document.createElement("input");
-    input.type = "color";
-    input.value = (draft as any)[key];
-    input.setAttribute("aria-label", key);
-    input.oninput = () => {
-      (draft as any)[key] = input.value;
-      setAvatar(builtIn(sanitizeAvatar(draft)));
-    };
-    grid.append(input);
-  }
-  const random = document.createElement("button");
-  random.className = "btn";
-  random.textContent = "RANDOMIZE";
-  random.onclick = () => {
-    Object.assign(draft, randomAvatar());
-    setAvatar(builtIn(draft));
-    openStudio();
-  };
-  const save = document.createElement("button");
-  save.className = "btn primary";
-  save.textContent = "SAVE LOOK";
-  save.onclick = () => {
-    cfg = sanitizeAvatar(draft);
-    studioDraft = null;
-    saveConfig(cfg);
-    savePreset(cfg.name, cfg);
-    setAvatar(builtIn(cfg));
-    lounge.sendAppearance(appearanceOf(cfg));
-    menu();
-  };
-  const cancel = document.createElement("button");
-  cancel.className = "btn";
-  cancel.textContent = "CANCEL";
-  cancel.onclick = () => {
-    studioDraft = null;
-    setAvatar(builtIn(cfg));
-    menu();
-  };
-  const saved = document.createElement("div");
-  for (const [label, look] of Object.entries(presets())) {
-    const b = document.createElement("button");
-    b.className = "btn";
-    b.textContent = label;
-    b.onclick = () => {
-      Object.assign(draft, look);
-      setAvatar(builtIn(draft));
-      openStudio();
-    };
-    saved.append(b);
-  }
-  const file = document.createElement("input");
-  file.type = "file";
-  file.accept = ".glb";
-  file.onchange = async () => {
-    const f = file.files?.[0];
-    if (!f) return;
-    try {
-      const g = await parseGlb(f);
-      await saveFile(f, cfg.seed + "");
-      cfg.imported = f.name;
+  studioCleanup?.();
+  boot.className = "ui character-studio-host";
+  boot.style.cssText = "position:fixed;inset:0;display:grid;place-items:center;z-index:20;pointer-events:auto;overflow:auto;background:#050a5a";
+  const current = { ...cfg };
+  studioCleanup = mountCharacterStudio(boot, current, {
+    save: draft => {
+      cfg = sanitizeAvatar(draft);
       saveConfig(cfg);
-      setAvatar(g.model, g.clips);
-      note = "LOCAL-ONLY GLB · remote players see your wardrobe avatar";
-    } catch (e) {
-      note = "IMPORT ERROR · " + (e as Error).message;
+      savePreset(cfg.name, cfg);
+      setAvatar(builtIn(cfg));
+      lounge.sendAppearance(appearanceOf(cfg));
+      closeStudio();
+      menu();
+    },
+    cancel: () => {
+      setAvatar(builtIn(cfg));
+      closeStudio();
+      menu();
     }
-  };
-  boot.append(h, name, grid, random, save, cancel, saved, file);
+  });
+}
+function closeStudio() {
+  studioCleanup?.();
+  studioCleanup = null;
+  boot.className = "ui panel boot";
+  boot.style.cssText = "";
 }
 menu();
 const playerNames = new Map<string, string>();

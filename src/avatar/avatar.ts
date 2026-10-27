@@ -1,11 +1,12 @@
+import { characterSelectModel } from "./character-select";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 export const BODY = ["blocky", "stylized"] as const;
 export const HATS = ["none", "cap", "beanie", "halo", "crown"] as const;
-export const HAIR = ["bob", "mohawk", "bun"] as const;
-export const TOPS = ["jacket", "hoodie", "armor"] as const;
-export const PANTS = ["cargo", "skirt", "shorts"] as const;
+export const HAIR = ["twists", "buzz", "afro", "braids", "bald", "bob", "mohawk", "bun"] as const;
+export const TOPS = ["tee", "tank", "hoodie", "jacket", "armor"] as const;
+export const PANTS = ["cargo", "jeans", "shorts", "skirt"] as const;
 export const SHOES = ["boots", "sneakers", "sandals"] as const;
 export const GLASSES = ["none", "round", "visor"] as const;
 export const MASKS = ["none", "half", "neon"] as const;
@@ -171,131 +172,7 @@ const part = (
   return p;
 };
 export function builtIn(input: AvatarConfig) {
-  const c = sanitizeAvatar(input),
-    root = new THREE.Group(),
-    skin = mat(c.skin),
-    cloth = mat(c.outfit),
-    accent = mat(c.accent),
-    hair = mat(c.hairColor),
-    block = c.body === "blocky";
-  root.userData.procedural = true;
-  root.userData.sockets = {};
-  const box = (x: number, y: number, z: number) =>
-    new THREE.BoxGeometry(x, y, z);
-  // Rig origin is the floor. Shoe soles must be at y=0 in the standing pose.
-  const upperArm = block ? box(0.22, 0.52, 0.22) : new THREE.CapsuleGeometry(0.11, 0.30, 4, 8);
-  const lowerArm = block ? box(0.19, 0.46, 0.19) : new THREE.CapsuleGeometry(0.095, 0.27, 4, 8);
-  const upperLeg = block ? box(0.25, 0.44, 0.26) : new THREE.CapsuleGeometry(0.125, 0.19, 4, 8);
-  const lowerLeg = block ? box(0.22, 0.43, 0.23) : new THREE.CapsuleGeometry(0.11, 0.21, 4, 8);
-  part(root, "TORSO", block ? box(0.72, 0.82, 0.34) : new THREE.CylinderGeometry(0.38, 0.32, 0.85, 8), cloth, 0, 1.28, 0);
-  part(root, "HEAD", block ? box(0.52, 0.55, 0.48) : new THREE.SphereGeometry(0.32, 12, 10), skin, 0, 2.02, 0);
-  for (const [side, x] of [["LEFT", -0.48], ["RIGHT", 0.48]] as const) {
-    // Joint pivots sit at shoulder, elbow, hip, knee and ankle.
-    const shoulder = part(root, `${side}_UPPER_ARM`, upperArm, cloth, x, 1.56, 0, -0.26);
-    part(shoulder, `${side}_LOWER_ARM`, lowerArm, skin, 0, -0.51, 0, -0.23);
-    const hip = part(root, `${side}_UPPER_LEG`, upperLeg, cloth, x * 0.55, 0.91, 0, -0.22);
-    const knee = part(hip, `${side}_LOWER_LEG`, lowerLeg, accent, 0, -0.44, 0, -0.215);
-    // Knee pivot at 0.47; ankle at 0.08; shoe extends from 0 to 0.16.
-    part(knee, `${side}_FOOT`, box(0.26, 0.16, 0.38), accent, 0, -0.39, 0.1);
-  }
-  const socket = (name: string, x: number, y: number, z: number) => {
-    const q = new THREE.Group();
-    q.name = name;
-    q.position.set(x, y, z);
-    root.add(q);
-    root.userData.sockets[name] = q;
-    return q;
-  };
-  const head = socket("HEAD_TOP", 0, 2.37, 0),
-    face = socket("HEAD_FACE", 0, 2.04, 0.28),
-    back = socket("BACK", 0, 1.32, 0.25);
-  if (c.hair === "bun")
-    part(head, "HAIR", new THREE.SphereGeometry(0.18, 8, 6), hair, 0, 0.12, 0);
-  else
-    part(
-      head,
-      "HAIR",
-      c.hair === "mohawk"
-        ? box(0.16, 0.42, 0.38)
-        : new THREE.SphereGeometry(0.32, 10, 8),
-      hair,
-      0,
-      0.03,
-      0,
-    );
-  // Hats are authored around the head-top socket. No generic limb offset:
-  // previously every hat sat 0.32 units below its intended anchor.
-  if (c.hat !== "none") {
-    const hat = new THREE.Group();
-    hat.name = "HAT";
-    head.add(hat);
-    const addHatMesh = (geometry: THREE.BufferGeometry, material: THREE.Material, y: number) => {
-      const piece = new THREE.Mesh(geometry, material);
-      piece.position.y = y;
-      hat.add(piece);
-    };
-    if (c.hat === "cap") {
-      addHatMesh(new THREE.CylinderGeometry(0.29, 0.31, 0.16, 12), cloth, 0.09);
-      const brim = new THREE.Mesh(box(0.48, 0.045, 0.22), accent);
-      brim.position.set(0, 0.025, 0.31);
-      hat.add(brim);
-    } else if (c.hat === "beanie") {
-      addHatMesh(new THREE.SphereGeometry(0.31, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), cloth, 0.0);
-      addHatMesh(new THREE.CylinderGeometry(0.31, 0.31, 0.09, 12), accent, 0.025);
-    } else if (c.hat === "halo") {
-      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.045, 8, 24), accent);
-      ring.rotation.x = Math.PI / 2;
-      ring.position.y = 0.32;
-      hat.add(ring);
-    } else if (c.hat === "crown") {
-      addHatMesh(new THREE.CylinderGeometry(0.29, 0.29, 0.13, 8), accent, 0.12);
-      for (let i = 0; i < 8; i++) {
-        const a = (i / 8) * Math.PI * 2;
-        const tip = new THREE.Mesh(new THREE.ConeGeometry(0.075, 0.17, 4), accent);
-        tip.position.set(Math.cos(a) * 0.24, 0.28, Math.sin(a) * 0.24);
-        hat.add(tip);
-      }
-    }
-    // A full bob/bun/mohawk and a close-fitting hat occupy the same space.
-    // Hide procedural hair only for fitted hats; keep it for halo/crown.
-    if (c.hat === "cap" || c.hat === "beanie") {
-      const hairMesh = head.getObjectByName("HAIR");
-      if (hairMesh) hairMesh.visible = false;
-    }
-  }
-  if (c.glasses !== "none")
-    part(
-      face,
-      "GLASSES",
-      new THREE.TorusGeometry(0.13, 0.03, 5, 8),
-      accent,
-      0,
-      0,
-      0.02,
-    );
-  if (c.mask !== "none")
-    part(
-      face,
-      "MASK",
-      box(0.34, 0.18, 0.07),
-      c.mask === "neon" ? accent : cloth,
-      0,
-      -0.12,
-      0.02,
-    );
-  if (c.backpack !== "none")
-    part(
-      back,
-      "BACKPACK",
-      c.backpack === "wings"
-        ? new THREE.ConeGeometry(0.32, 0.7, 4)
-        : box(0.46, 0.52, 0.14),
-      accent,
-      0,
-      0,
-      0.12,
-    );
-  return root;
+  return characterSelectModel(sanitizeAvatar(input));
 }
 export function appearanceOf(c: AvatarConfig): AvatarAppearance {
   const { name, scale, rotation, seed, imported, ...appearance } =
