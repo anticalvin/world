@@ -1,8 +1,24 @@
 import { describe, expect, it } from "vitest";
-import { sanitizeAvatar, builtIn, defaults } from "../src/avatar/avatar";
+import { sanitizeAvatar, builtIn, defaults, randomAvatar } from "../src/avatar/avatar";
 import { SKIN, HAIR_COLORS, TOP_COLORS } from "../src/avatar/character-studio";
 
 describe("Character Select integration", () => {
+  it("new avatars do not have surprise face masks or backpack panels", () => {
+    for (const seed of [1, 1234, 142857, 99999]) {
+      const c = randomAvatar(seed);
+      expect(c.mask).toBe("none");
+      expect(c.backpack).toBe("none");
+      const model = builtIn(c);
+      expect(model.getObjectByName("MASK")).toBeUndefined();
+      expect(model.getObjectByName("BACKPACK")).toBeUndefined();
+    }
+  });
+  it("preserves older saved accessories until the user removes them", () => {
+    const c = sanitizeAvatar({ ...defaults, mask:"neon", backpack:"pack" });
+    const model = builtIn(c);
+    expect(model.getObjectByName("MASK")).toBeTruthy();
+    expect(model.getObjectByName("BACKPACK")).toBeTruthy();
+  });
   it("retains the user's new hair and clothing choices", () => {
     for (const hair of ["twists","buzz","afro","braids","bald"] as const) {
       expect(sanitizeAvatar({ ...defaults, hair }).hair).toBe(hair);

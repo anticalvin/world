@@ -87,6 +87,8 @@ test("Character Select changes and persists the in-game avatar", async ({ page }
   await expect(page.getByRole("region", { name: "Character Select Avatar Studio" })).toBeVisible();
   for (let i = 0; i < 8 && !(await page.locator(".character-row").nth(1).textContent())?.includes("TWISTS"); i++) await page.getByRole("button", { name: "Previous HAIR", exact: true }).click();
   for (let i = 0; i < 5 && !(await page.locator(".character-row").nth(3).textContent())?.includes("TEE"); i++) await page.getByRole("button", { name: "Previous TOP", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Remove mask and backpack" })).toBeVisible();
+  await page.getByRole("button", { name: "Remove mask and backpack" }).click();
   await page.getByRole("textbox", { name: "Display name" }).fill("NEONFOX");
   await page.getByRole("button", { name: "Next HAIR", exact: true }).click();
   await page.getByRole("button", { name: "Next TOP", exact: true }).click();
@@ -97,6 +99,7 @@ test("Character Select changes and persists the in-game avatar", async ({ page }
   await expect(page.getByRole("textbox", { name: "Display name" })).toHaveValue("NEONFOX");
   await expect(page.locator(".character-row").nth(1)).toContainText("BUZZ");
   await expect(page.locator(".character-row").nth(3)).toContainText("TANK");
+  await expect.poll(() => page.evaluate(() => { const saved = JSON.parse(localStorage.getItem("awaken-avatar-v2") || "{}"); return [saved.mask, saved.backpack]; })).toEqual(["none","none"]);
   await page.screenshot({ path: "test-results/avatar-studio.png" });
 });
 
