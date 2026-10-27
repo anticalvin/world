@@ -687,7 +687,7 @@ function loop(now: number) {
     if (w.id === "delta-9" && lastPunch) {
       const arm = model.getObjectByName(lastPunch === "left" ? "LEFT_UPPER_ARM" : "RIGHT_UPPER_ARM");
       if (arm && performance.now() < punchUntil) applyForwardPunch(arm, lastPunch);
-      else lastPunch = null;
+      else { if (arm) { arm.rotation.y = 0; arm.rotation.z = 0; const elbow = arm.getObjectByName((lastPunch === "left" ? "LEFT" : "RIGHT") + "_LOWER_ARM"); if (elbow) elbow.rotation.x = 0; } lastPunch = null; }
     }
     follow(hero.state.position, dt);
     game();
