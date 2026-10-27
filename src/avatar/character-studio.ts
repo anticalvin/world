@@ -29,7 +29,7 @@ const css = `
 .character-stage .character-value{text-align:center;font-size:clamp(10px,2.1vw,16px);overflow:hidden}
 .character-stage .character-arrow{color:inherit;background:transparent;border:0;font:inherit;cursor:pointer;min-height:32px;padding:0}
 .character-stage .character-confirm{border:0;background:transparent;color:#f2d84a;text-align:left;font-size:clamp(17px,3.8vw,27px);cursor:pointer;padding:12px 0}
-.character-stage .character-cancel{border:0;background:transparent;color:#aab3ff;text-align:left;cursor:pointer;padding:6px 0}
+.character-stage .character-clear{border:1px solid #f2d84a80;background:#050c83;color:#f2d84a;text-align:left;cursor:pointer;font-size:clamp(9px,1.7vw,12px);padding:5px;max-width:100%}\n.character-stage .character-cancel{border:0;background:transparent;color:#aab3ff;text-align:left;cursor:pointer;padding:6px 0}
 .character-stage .character-hp{position:absolute;top:13%;left:10%;color:#22d36a;font-size:clamp(9px,1.7vw,13px)}
 .character-stage .character-footer{position:absolute;right:5%;bottom:4%;font-size:clamp(8px,1.7vw,12px);color:#f2d84a}
 .character-stage .character-title{position:absolute;top:3%;left:7%;font-size:clamp(11px,2.5vw,18px);letter-spacing:.2em}
@@ -71,7 +71,7 @@ export function mountCharacterStudio(host: HTMLElement, initial: AvatarConfig, h
     item.append(label,prev,value,next);menu.append(item);elements.push(item);
   });
   const confirm=document.createElement("button");confirm.className="character-confirm";confirm.textContent="› CONFIRM";confirm.onclick=()=>handlers.save(sanitizeAvatar(draft));
-  const cancel=document.createElement("button");cancel.className="character-cancel";cancel.textContent="CANCEL · RETURN";cancel.onclick=handlers.cancel;menu.append(confirm,cancel);paint();
+  const cancel=document.createElement("button");cancel.className="character-cancel";cancel.textContent="CANCEL · RETURN";cancel.onclick=handlers.cancel;const clear=document.createElement("button");clear.className="character-clear";clear.textContent="REMOVE MASK + BACKPACK";clear.setAttribute("aria-label","Remove mask and backpack");clear.onclick=()=>{draft.mask="none";draft.backpack="none";refresh();};menu.append(confirm,clear,cancel);paint();
   canvas.addEventListener("pointerdown",e=>{drag=true;lastX=e.clientX;canvas.setPointerCapture(e.pointerId);});
   canvas.addEventListener("pointermove",e=>{if(drag){yaw+=(e.clientX-lastX)*0.014;lastX=e.clientX;}});
   canvas.addEventListener("pointerup",()=>{drag=false;});
