@@ -39,3 +39,6 @@ Lazy-load Rapier, GLB, and world chunks; instance repeated geometry, LOD, KTX2/D
 3. The current course uses z-threshold checkpoints and finish before its last obstacles; fix the course geometry/rules before treating ghost times as competitive.
 4. GitHub Pages deployment does not establish a hosted Colyseus service.
 5. Browser test automation and actual iPhone Safari testing are different gates. Report both.
+
+## Revised phase order (2026-10-27)
+The requested sequence supersedes the earlier ghost-first roadmap: Phase 0 audit and CI; Phase 1 shared Rapier motor/prediction; Phase 2 rooms and per-world rules; Phase 3 social; Phase 4 WSS hosting and performance; Phase 5 declarative creator worlds. Retain ghost racing as part of Phase 2, not a claim of finished multiplayer. GitHub Actions must pass build, unit and browser tests before beginning Phase 1. See `AUDIT.md` for real-vs-stubbed inventory. For hosting, defer vendor choice until measurements; choose the simplest Colyseus-compatible WSS host with persistent processes and health checks, rather than moving away from Colyseus.

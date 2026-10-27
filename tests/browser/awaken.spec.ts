@@ -56,6 +56,8 @@ test("two real browser clients meet, move, chat, disconnect and reconnect", asyn
       beta.evaluate(() => (window as any).__AWAKEN_DEBUG?.remotePosition?.z),
     )
     .not.toBe(before);
+  await alpha.locator("#chat-toggle").click();
+  await beta.locator("#chat-toggle").click();
   await alpha.getByRole("textbox", { name: "Lounge chat" }).fill("hello beta");
   await alpha.getByRole("button", { name: "SEND" }).click();
   await expect(beta.getByText("WANDERER: hello beta")).toBeVisible();
@@ -68,6 +70,7 @@ test("two real browser clients meet, move, chat, disconnect and reconnect", asyn
     .toBe(0);
   const alphaAgain = await first.newPage();
   await alphaAgain.goto("/");
+  await expect(alphaAgain.getByRole("button", { name: "JACK IN" })).toBeEnabled({ timeout: 20000 });
   await alphaAgain.getByRole("button", { name: "JACK IN" }).click();
   await expect
     .poll(() =>
@@ -90,8 +93,9 @@ test("Avatar Studio saves a wardrobe preset", async ({ page }) => {
   await page.screenshot({ path: "test-results/avatar-studio.png" });
 });
 
-test("mobile chat starts closed and can be toggled without blocking movement", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
+test("mobile chat starts closed and can be toggled without blocking movement", async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const page = await context.newPage();
   await page.goto("/");
   await page.getByRole("button", { name: "JACK IN" }).click();
   const chat = page.locator("#lounge-chat");
@@ -102,4 +106,5 @@ test("mobile chat starts closed and can be toggled without blocking movement", a
   await expect(chat).toBeHidden();
   await expect(page.locator("#mjump")).toBeVisible();
   await expect(page.locator("#stick")).toBeVisible();
+  await context.close();
 });
