@@ -83,10 +83,10 @@ test("two real browser clients meet, move, chat, disconnect and reconnect", asyn
 
 test("Character Select changes and persists the in-game avatar", async ({ page }) => {
   await page.goto("/");
-  await page.evaluate(() => { const key = "awaken-avatar-v2"; const saved = JSON.parse(localStorage.getItem(key)!); saved.hair = "twists"; saved.top = "tee"; localStorage.setItem(key, JSON.stringify(saved)); });
-  await page.reload();
   await page.getByRole("button", { name: "AVATAR STUDIO" }).click();
   await expect(page.getByRole("region", { name: "Character Select Avatar Studio" })).toBeVisible();
+  for (let i = 0; i < 8 && !(await page.locator(".character-row").nth(1).textContent())?.includes("TWISTS"); i++) await page.getByRole("button", { name: "Previous HAIR", exact: true }).click();
+  for (let i = 0; i < 5 && !(await page.locator(".character-row").nth(3).textContent())?.includes("TEE"); i++) await page.getByRole("button", { name: "Previous TOP", exact: true }).click();
   await page.getByRole("textbox", { name: "Display name" }).fill("NEONFOX");
   await page.getByRole("button", { name: "Next HAIR", exact: true }).click();
   await page.getByRole("button", { name: "Next TOP", exact: true }).click();
