@@ -4,16 +4,21 @@ AWAKEN is a local browser prototype: one persisted avatar identity travels betwe
 
 ## Run
 
+Prerequisites: Node.js 22, npm, and Playwright Chromium. The Colyseus server runs separately from the Vite dev server. Run from the repository root:
+
 ```sh
 npm ci
+npx playwright install chromium
 npm run server
-# in a second terminal: VITE_AWAKEN_WS_URL=ws://127.0.0.1:2567 npm run dev
+# In another terminal:
+VITE_AWAKEN_WS_URL=ws://127.0.0.1:2567 npm run dev
+# In another terminal, with both services running:
 npm run build
 npm test
 npm run test:browser
 ```
 
-`docs/` is the static production build used by GitHub Pages. No runtime CDN is required.
+`docs/` is the static production build used by GitHub Pages. No runtime CDN is required. For a fully clean checkout use `npm ci` rather than an unpinned install. Browser tests require Playwright Chromium and any test-server configuration defined in `playwright.config.ts`. GitHub Pages hosts the browser only, not Colyseus.\n\n**Verification status:** These are the repository setup commands, not a claim of a successful local run in this execution environment. A GitHub clone attempt failed because github.com could not resolve; local install, dev server and browser tests were therefore not executed. Consult `PLAN.md` for release gates and known risks.
 
 ## Controls
 
