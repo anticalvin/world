@@ -59,14 +59,14 @@ export function mountCharacterStudio(host: HTMLElement, initial: AvatarConfig, h
   let yaw=0,drag=false,lastX=0,frame=0,disposed=false,active=0;
   function refresh(){scene.remove(model);model.traverse(o=>{if(o instanceof THREE.Mesh){o.geometry.dispose();const m=o.material;for(const item of Array.isArray(m)?m:[m])item.dispose();}});model=builtIn(draft);scene.add(model);handlers.change?.(draft);paint();}
   const elements:HTMLElement[]=[];
-  function paint(){elements.forEach((el,i)=>{const row=ROWS[i];const index=row.values.indexOf(String(draft[row.key]));el.classList.toggle("active",i===active);el.querySelector(".character-value")!.textContent=row.names[Math.max(0,index)];});}
+  function paint(){elements.forEach((el,i)=>{const row=ROWS[i];const index=(row.values as readonly string[]).indexOf(String(draft[row.key]));el.classList.toggle("active",i===active);el.querySelector(".character-value")!.textContent=row.names[Math.max(0,index)];});}
   ROWS.forEach((row,i)=>{
     const item=document.createElement("div");item.className="character-row";
     const label=document.createElement("span");label.className="character-label";label.textContent=row.label;
     const prev=document.createElement("button");prev.className="character-arrow";prev.textContent="‹";prev.setAttribute("aria-label","Previous "+row.label);
     const value=document.createElement("span");value.className="character-value";
     const next=document.createElement("button");next.className="character-arrow";next.textContent="›";next.setAttribute("aria-label","Next "+row.label);
-    function change(delta:number){active=i;const index=row.values.indexOf(String(draft[row.key]));(draft as unknown as Record<string,string>)[row.key]=row.values[(index+delta+row.values.length)%row.values.length];refresh();}
+    function change(delta:number){active=i;const index=(row.values as readonly string[]).indexOf(String(draft[row.key]));(draft as unknown as Record<string,string>)[row.key]=row.values[(index+delta+row.values.length)%row.values.length];refresh();}
     prev.onclick=()=>change(-1);next.onclick=()=>change(1);
     item.append(label,prev,value,next);menu.append(item);elements.push(item);
   });
