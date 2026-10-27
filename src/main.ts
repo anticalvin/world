@@ -140,6 +140,10 @@ function strike(hand: Hand) {
   punchUntil = performance.now() + (hand === "left" ? 160 : 260);
   note = (hand === "left" ? "LEFT JAB" : "RIGHT CROSS") + " · STAMINA " + Math.round(boxer.stamina) + " · SOLO TRAINING";
 }
+const buildMark = document.createElement("small");
+buildMark.textContent = "AWAKEN · BUILD 2026-10-27-B";
+buildMark.style.cssText = "position:absolute;right:0;top:52px;font-size:9px;color:#35f0ff;pointer-events:none";
+hud.append(buildMark);
 const where = hud.querySelector("#where")!,
   notice = hud.querySelector("#notice")!;
 const chatToggle = document.createElement("button"),
@@ -184,6 +188,10 @@ function toggleChat(open = !chatOpen) {
   if (!open) chatText.blur();
 }
 chatToggle.onclick = () => toggleChat();
+// The public static site has no hosted multiplayer service: never show a dead chat composer.
+const liveChatConfigured = Boolean(import.meta.env.VITE_AWAKEN_WS_URL) || !location.hostname.endsWith(".github.io");
+chatToggle.hidden = !liveChatConfigured;
+chatPanel.hidden = !liveChatConfigured;
 chatForm.onsubmit = (e) => {
   e.preventDefault();
   const text = chatText.value.trim();
@@ -530,7 +538,7 @@ function start(x: WorldManifest, spawn?: string) {
   hero.setWorld(x.scene.colliders, x.spawns[spawn || Object.keys(x.spawns)[0]]);
   if (x.id === "neon-course") course = restart(course);
   toggleChat(false);
-  chatToggle.style.display = x.id === "awaken-lounge" ? "block" : "none";
+  chatToggle.style.display = x.id === "awaken-lounge" && liveChatConfigured ? "block" : "none";
   chatPanel.style.display = "none";
   if (x.id === "awaken-lounge")
     lounge.connect({
