@@ -88,8 +88,8 @@ test("Character Select changes and persists the in-game avatar", async ({ page }
   await page.getByRole("button", { name: "AVATAR STUDIO" }).click();
   await expect(page.getByRole("region", { name: "Character Select Avatar Studio" })).toBeVisible();
   await page.getByRole("textbox", { name: "Display name" }).fill("NEONFOX");
-  await page.getByRole("button", { name: "Next HAIR" }).click();
-  await page.getByRole("button", { name: "Next TOP" }).click();
+  await page.getByRole("button", { name: "Next HAIR", exact: true }).click();
+  await page.getByRole("button", { name: "Next TOP", exact: true }).click();
   await page.getByRole("button", { name: "› CONFIRM" }).click();
   await expect(page.getByRole("heading", { name: "AWAKEN" })).toBeVisible();
   await page.reload();
