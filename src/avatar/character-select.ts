@@ -32,7 +32,7 @@ export function characterSelectModel(c: AvatarConfig): THREE.Group {
     const elbow = group(shoulder, side + "_LOWER_ARM", 0, -0.34, 0);
     part(elbow, "FOREARM", cyl(0.057, 0.05, 0.25), skin, 0, -0.125, 0);
     part(elbow, "HAND", new THREE.SphereGeometry(0.07, 6, 5), skin, 0, -0.27, 0);
-    const hip = group(root, side + "_UPPER_LEG", d * 0.15, 0.88, 0);
+    const hip = group(root, side + "_UPPER_LEG", d * 0.15, 0.76, 0);
     part(hip, "THIGH", cyl(0.13, 0.17, 0.4), pants, 0, -0.2, 0);
     if (c.pants === "cargo") part(hip, "POCKET", box(0.07, 0.17, 0.13), pants, d * 0.15, -0.23, 0.02);
     const knee = group(hip, side + "_LOWER_LEG", 0, -0.4, 0);
