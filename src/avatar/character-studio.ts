@@ -6,11 +6,11 @@ export const HAIR_COLORS = [["BLACK","#17110e"],["BROWN","#4a2c1a"],["BLONDE","#
 export const TOP_COLORS = [["WHITE","#f0f0f0"],["BLACK","#1a1a1a"],["RED","#d02222"],["BLUE","#3552ff"],["OLIVE","#6b7a3a"],["YELLOW","#f2d84a"]] as const;
 const ROWS = [
   {label:"SKIN", key:"skin", values:SKIN.map(x=>x[1]), names:SKIN.map(x=>x[0])},
-  {label:"HAIR", key:"hair", values:["twists","buzz","afro","braids","bald"], names:["TWISTS","BUZZ","AFRO","BRAIDS","BALD"]},
+  {label:"HAIR", key:"hair", values:["twists","buzz","afro","braids","bald","bob","mohawk","bun"], names:["TWISTS","BUZZ","AFRO","BRAIDS","BALD","BOB","MOHAWK","BUN"]},
   {label:"HAIR COLOR", key:"hairColor", values:HAIR_COLORS.map(x=>x[1]), names:HAIR_COLORS.map(x=>x[0])},
-  {label:"TOP", key:"top", values:["tee","tank","hoodie"], names:["TEE","TANK","HOODIE"]},
+  {label:"TOP", key:"top", values:["tee","tank","hoodie","jacket","armor"], names:["TEE","TANK","HOODIE","JACKET","ARMOR"]},
   {label:"TOP COLOR", key:"outfit", values:TOP_COLORS.map(x=>x[1]), names:TOP_COLORS.map(x=>x[0])},
-  {label:"PANTS", key:"pants", values:["cargo","jeans","shorts"], names:["CARGO","JEANS","SHORTS"]},
+  {label:"PANTS", key:"pants", values:["cargo","jeans","shorts","skirt"], names:["CARGO","JEANS","SHORTS","SKIRT"]},
   {label:"SHOES", key:"shoes", values:["sneakers","boots","sandals"], names:["SNEAKERS","BOOTS","SANDALS"]},
 ] as const;
 
