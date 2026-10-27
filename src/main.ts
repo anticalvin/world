@@ -210,8 +210,9 @@ function menu() {
   play.onclick = () => { if (physicsReady) start(w); };
   boot.append(h, list, studio, play);
 }
+let studioDraft: AvatarConfig | null = null;
 function openStudio() {
-  const draft = { ...cfg };
+  const draft = studioDraft ?? (studioDraft = { ...cfg });
   boot.replaceChildren();
   const h = document.createElement("h1");
   h.textContent = "AVATAR STUDIO";
@@ -274,6 +275,7 @@ function openStudio() {
   save.textContent = "SAVE LOOK";
   save.onclick = () => {
     cfg = sanitizeAvatar(draft);
+    studioDraft = null;
     saveConfig(cfg);
     savePreset(cfg.name, cfg);
     setAvatar(builtIn(cfg));
@@ -284,6 +286,7 @@ function openStudio() {
   cancel.className = "btn";
   cancel.textContent = "CANCEL";
   cancel.onclick = () => {
+    studioDraft = null;
     setAvatar(builtIn(cfg));
     menu();
   };
@@ -309,6 +312,7 @@ function openStudio() {
       const g = await parseGlb(f);
       await saveFile(f, cfg.seed + "");
       cfg.imported = f.name;
+      saveConfig(cfg);
       setAvatar(g.model, g.clips);
       note = "LOCAL-ONLY GLB · remote players see your wardrobe avatar";
     } catch (e) {
