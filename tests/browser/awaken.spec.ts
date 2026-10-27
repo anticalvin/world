@@ -81,15 +81,20 @@ test("two real browser clients meet, move, chat, disconnect and reconnect", asyn
   await second.close();
 });
 
-test("Avatar Studio saves a wardrobe preset", async ({ page }) => {
+test("Character Select changes and persists the in-game avatar", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "AVATAR STUDIO" }).click();
-  await expect(
-    page.getByRole("heading", { name: "AVATAR STUDIO" }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "crown" }).click();
-  await page.getByRole("button", { name: "SAVE LOOK" }).click();
+  await expect(page.getByRole("region", { name: "Character Select Avatar Studio" })).toBeVisible();
+  await page.getByRole("textbox", { name: "Display name" }).fill("NEONFOX");
+  await page.getByRole("button", { name: "Next HAIR" }).click();
+  await page.getByRole("button", { name: "Next TOP" }).click();
+  await page.getByRole("button", { name: "› CONFIRM" }).click();
   await expect(page.getByRole("heading", { name: "AWAKEN" })).toBeVisible();
+  await page.reload();
+  await page.getByRole("button", { name: "AVATAR STUDIO" }).click();
+  await expect(page.getByRole("textbox", { name: "Display name" })).toHaveValue("NEONFOX");
+  await expect(page.locator(".character-row").nth(1)).toContainText("BUZZ");
+  await expect(page.locator(".character-row").nth(3)).toContainText("TANK");
   await page.screenshot({ path: "test-results/avatar-studio.png" });
 });
 
