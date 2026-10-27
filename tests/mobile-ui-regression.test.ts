@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
-const main=readFileSync(new URL('../src/main.ts',import.meta.url),'utf8');
-const anim=readFileSync(new URL('../src/avatar/animation.ts',import.meta.url),'utf8');
+import main from '../src/main.ts?raw';
+import anim from '../src/avatar/animation.ts?raw';
 describe('mobile regression safeguards',()=>{
  it('gates chat on static GitHub Pages without a websocket',()=>{
   expect(main).toContain('const liveChatConfigured =');
