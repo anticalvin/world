@@ -3,7 +3,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 export const BODY = ["blocky", "stylized"] as const;
 export const HATS = ["none", "cap", "beanie", "halo", "crown"] as const;
-export const HAIR = ["bob", "mohawk", "bun"] as const;
+export const HAIR = ["twists", "buzz", "afro", "braids", "bald", "bob", "mohawk", "bun"] as const;
 export const TOPS = ["jacket", "hoodie", "armor"] as const;
 export const PANTS = ["cargo", "skirt", "shorts"] as const;
 export const SHOES = ["boots", "sneakers", "sandals"] as const;
