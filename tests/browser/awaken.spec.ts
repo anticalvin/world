@@ -20,6 +20,9 @@ for (const viewport of [
 test("two real browser clients meet, move, chat, disconnect and reconnect", async ({
   browser,
 }) => {
+  // Two WebGL clients plus a third navigation/rejoin can exceed the default 30 s
+  // on GitHub-hosted runners. Keep all connection and message assertions intact.
+  test.setTimeout(90000);
   const first = await browser.newContext({
     viewport: { width: 1280, height: 800 },
   });

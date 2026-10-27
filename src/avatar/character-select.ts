@@ -24,7 +24,8 @@ export function characterSelectModel(c: AvatarConfig): THREE.Group {
   part(root, "WAIST", box(0.56, 0.22, 0.31), pants, 0, 0.88, 0);
   part(root, "BELT", box(0.57, 0.05, 0.32), dark, 0, 0.98, 0);
   part(root, "NECK", cyl(0.06, 0.07, 0.1), skin, 0, 1.62, 0);
-  const baggy = c.pants === "cargo" || c.pants === "jeans";
+  // Original Character Select 2: 0.13 top radius, 0.19 * style width at hem.
+  const pantFlare = c.pants === "cargo" ? 1.15 : c.pants === "jeans" ? 0.85 : 0.95;
   for (const side of ["LEFT", "RIGHT"] as const) {
     const d = side === "LEFT" ? -1 : 1;
     const shoulder = group(root, side + "_UPPER_ARM", d * (tw / 2 + 0.065), 1.49, 0);
@@ -33,11 +34,11 @@ export function characterSelectModel(c: AvatarConfig): THREE.Group {
     const elbow = group(shoulder, side + "_LOWER_ARM", 0, -0.34, 0);
     part(elbow, "FOREARM", cyl(0.057, 0.05, 0.25), skin, 0, -0.125, 0);
     part(elbow, "HAND", new THREE.SphereGeometry(0.07, 6, 5), skin, 0, -0.27, 0);
-    const hip = group(root, side + "_UPPER_LEG", d * (baggy ? 0.205 : 0.15), 0.76, 0);
-    part(hip, "THIGH", baggy ? cyl(0.18, 0.20, 0.4) : cyl(0.13, 0.17, 0.4), pants, 0, -0.2, 0);
-    if (c.pants === "cargo") part(hip, "POCKET", box(0.055, 0.16, 0.16), mat("#485330"), d * 0.205, -0.24, 0.01);
+    const hip = group(root, side + "_UPPER_LEG", d * 0.15, 0.76, 0);
+    part(hip, "THIGH", cyl(0.13, c.pants === "shorts" ? 0.17 : 0.19 * pantFlare, 0.4), pants, 0, -0.2, 0);
+    if (c.pants === "cargo") part(hip, "POCKET", box(0.07, 0.17, 0.13), pants, d * 0.15, -0.24, 0.02);
     const knee = group(hip, side + "_LOWER_LEG", 0, -0.4, 0);
-    part(knee, "SHIN", baggy ? cyl(0.19, 0.155, 0.36) : cyl(0.12, 0.12, 0.36), c.pants === "shorts" ? skin : pants, 0, -0.18, 0);
+    part(knee, "SHIN", c.pants === "shorts" ? cyl(0.075, 0.08, 0.36) : cyl(0.19 * pantFlare, 0.19 * pantFlare, 0.36), c.pants === "shorts" ? skin : pants, 0, -0.18, 0);
     const ankle = group(knee, side + "_FOOT", 0, -0.36, 0);
     part(ankle, "SHOE", box(0.2, 0.10, 0.36), shoe, 0, 0.05, 0.05);
     part(ankle, "SOLE", box(0.22, 0.035, 0.38), sole, 0, 0.018, 0.05);
