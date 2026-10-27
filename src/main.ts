@@ -1,3 +1,4 @@
+import { createBoxer, tickBoxer, punch, ringPosition, type Hand } from "./game/boxing";
 import { clampLoungeXZ, FALL_RESPAWN_Y } from "./sdk/lounge-bounds";
 import * as T from "three";
 import { worlds } from "./sdk/worlds";
@@ -118,6 +119,27 @@ hud.className = "ui hud";
 hud.innerHTML =
   '<div class="top"><div class="panel" id="where"></div><button class="btn" id="view">VIEW: 3RD</button><button class="btn" id="menu" aria-label="Return to main menu">MENU</button></div><div class="panel hint" id="notice"></div><div id="touch" style="display:none"><div id="stick" style="position:absolute;left:18px;bottom:20px;width:112px;height:112px;border:2px solid #35f0ff;border-radius:50%;background:#0d061488;touch-action:none;pointer-events:auto"><div id="nub" style="position:absolute;left:33px;top:33px;width:42px;height:42px;border-radius:50%;background:#ff2e9a;border:2px solid white"></div></div><div style="position:absolute;right:12px;bottom:18px;display:flex;gap:6px;flex-wrap:wrap;width:160px;pointer-events:auto"><button style="min-width:72px;min-height:48px;color:#f5e9ff;background:#2a0f4d;border:2px solid #ff2e9a;font:inherit" id="run">RUN</button><button style="min-width:72px;min-height:48px;color:#f5e9ff;background:#2a0f4d;border:2px solid #ff2e9a;font:inherit" id="mjump">JUMP</button><button style="min-width:72px;min-height:48px;color:#f5e9ff;background:#2a0f4d;border:2px solid #ff2e9a;font:inherit" id="mslide">SLIDE</button><button style="min-width:72px;min-height:48px;color:#f5e9ff;background:#2a0f4d;border:2px solid #ff2e9a;font:inherit" id="mview">VIEW</button></div></div>';
 app.append(boot, hud);
+const boxer = createBoxer();
+let lastPunch: Hand | null = null;
+let punchUntil = 0;
+const fightControls = document.createElement("div");
+fightControls.style.cssText = "display:none;position:absolute;right:12px;bottom:22px;gap:10px;pointer-events:auto";
+for (const hand of ["left","right"] as const) {
+  const b = document.createElement("button");
+  b.className = "btn"; b.textContent = hand === "left" ? "LEFT JAB" : "RIGHT CROSS";
+  b.style.cssText = "min-width:100px;min-height:64px;font-weight:bold";
+  b.onclick = () => strike(hand);
+  fightControls.append(b);
+}
+hud.append(fightControls);
+function strike(hand: Hand) {
+  if (!active || w.id !== "delta-9") return;
+  const hit = punch(boxer, hand);
+  if (!hit.landed) return;
+  lastPunch = hand;
+  punchUntil = performance.now() + (hand === "left" ? 160 : 260);
+  note = (hand === "left" ? "LEFT JAB" : "RIGHT CROSS") + " · STAMINA " + Math.round(boxer.stamina) + " · SOLO TRAINING";
+}
 const where = hud.querySelector("#where")!,
   notice = hud.querySelector("#notice")!;
 const chatToggle = document.createElement("button"),
@@ -503,6 +525,8 @@ function start(x: WorldManifest, spawn?: string) {
   stickReset();
   keys.clear();
   art(x);
+  fightControls.style.display = x.id === "delta-9" ? "flex" : "none";
+  if (x.id === "delta-9") Object.assign(boxer, createBoxer());
   hero.setWorld(x.scene.colliders, x.spawns[spawn || Object.keys(x.spawns)[0]]);
   if (x.id === "neon-course") course = restart(course);
   toggleChat(false);
@@ -528,6 +552,16 @@ function distance(
 }
 function game() {
   const p = hero.state.position;
+  if (w.id === "delta-9") {
+    const edge = ringPosition(p.x, p.z);
+    if (edge.bounced) {
+      hero.body.setTranslation({x:edge.x,y:p.y,z:edge.z},true);
+      hero.state.position = {x:edge.x,y:p.y,z:edge.z};
+      hero.state.velocity.x *= -0.2;
+      hero.state.velocity.z *= -0.2;
+      note = "ROPES · BOUNCE BACK";
+    }
+  }
   if (p.y < FALL_RESPAWN_Y) {
     const spawnName = Object.keys(w.spawns)[0];
     start(w, spawnName);
@@ -570,6 +604,7 @@ function game() {
 }
 function exitToMenu() {
   active = false;
+  fightControls.style.display = "none";
   toggleChat(false);
   chatToggle.style.display = "none";
   chatPanel.style.display = "none";
@@ -589,6 +624,8 @@ addEventListener("keydown", (e) => {
     exitToMenu();
     return;
   }
+  if (w.id === "delta-9" && active && e.code === "KeyJ") strike("left");
+  if (w.id === "delta-9" && active && e.code === "KeyK") strike("right");
   if (e.code === "KeyV") third = !third;
   if (e.code === "Space") {
     jump = true;
@@ -683,6 +720,14 @@ function loop(now: number) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   if (active) {
+    if (w.id === "delta-9") {
+      tickBoxer(boxer, dt);
+      if (lastPunch) {
+        const arm = model.getObjectByName(lastPunch === "left" ? "LEFT_UPPER_ARM" : "RIGHT_UPPER_ARM");
+        if (arm && performance.now() < punchUntil) arm.rotation.x = -1.45;
+        else lastPunch = null;
+      }
+    }
     acc = Math.min(0.12, acc + dt);
     while (acc >= TICK) {
       hero.step(
