@@ -51,14 +51,14 @@ export class AvatarAnimator {
       for (const side of ["LEFT", "RIGHT"]) {
         const sign = side === "LEFT" ? 1 : -1;
         this.root.getObjectByName(`${side}_UPPER_ARM`)!.rotation.x =
-          sign * swing * 0.45;
-        this.root.getObjectByName(`${side}_UPPER_ARM`)!.rotation.z = side === "LEFT" ? -0.08 : 0.08;
+          sign * swing * 0.25;
+        this.root.getObjectByName(`${side}_UPPER_ARM`)!.rotation.z = 0;
         this.root.getObjectByName(`${side}_UPPER_LEG`)!.rotation.x =
           -sign * swing;
       }
       if (this.state === "jump" || this.state === "fall")
         this.root.getObjectByName("LEFT_UPPER_ARM")!.rotation.x =
-          this.root.getObjectByName("RIGHT_UPPER_ARM")!.rotation.x = -0.8;
+          this.root.getObjectByName("RIGHT_UPPER_ARM")!.rotation.x = -0.35;
     }
     const wanted = [...this.actions].find(([n]) => n.includes(this.state))?.[1];
     if (wanted) {
