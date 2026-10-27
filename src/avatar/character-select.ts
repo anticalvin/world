@@ -33,11 +33,11 @@ export function characterSelectModel(c: AvatarConfig): THREE.Group {
     const elbow = group(shoulder, side + "_LOWER_ARM", 0, -0.34, 0);
     part(elbow, "FOREARM", cyl(0.057, 0.05, 0.25), skin, 0, -0.125, 0);
     part(elbow, "HAND", new THREE.SphereGeometry(0.07, 6, 5), skin, 0, -0.27, 0);
-    const hip = group(root, side + "_UPPER_LEG", d * 0.15, 0.76, 0);
-    part(hip, "THIGH", baggy ? cyl(0.205, 0.235, 0.4) : cyl(0.13, 0.17, 0.4), pants, 0, -0.2, 0);
-    if (c.pants === "cargo") part(hip, "POCKET", box(0.055, 0.16, 0.16), mat("#485330"), d * 0.245, -0.24, 0.01);
+    const hip = group(root, side + "_UPPER_LEG", d * (baggy ? 0.205 : 0.15), 0.76, 0);
+    part(hip, "THIGH", baggy ? cyl(0.18, 0.20, 0.4) : cyl(0.13, 0.17, 0.4), pants, 0, -0.2, 0);
+    if (c.pants === "cargo") part(hip, "POCKET", box(0.055, 0.16, 0.16), mat("#485330"), d * 0.205, -0.24, 0.01);
     const knee = group(hip, side + "_LOWER_LEG", 0, -0.4, 0);
-    part(knee, "SHIN", baggy ? cyl(0.225, 0.155, 0.36) : cyl(0.12, 0.12, 0.36), c.pants === "shorts" ? skin : pants, 0, -0.18, 0);
+    part(knee, "SHIN", baggy ? cyl(0.19, 0.155, 0.36) : cyl(0.12, 0.12, 0.36), c.pants === "shorts" ? skin : pants, 0, -0.18, 0);
     const ankle = group(knee, side + "_FOOT", 0, -0.36, 0);
     part(ankle, "SHOE", box(0.2, 0.10, 0.36), shoe, 0, 0.05, 0.05);
     part(ankle, "SOLE", box(0.22, 0.035, 0.38), sole, 0, 0.018, 0.05);
