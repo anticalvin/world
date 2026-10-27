@@ -4,20 +4,24 @@ import { builtIn, defaults } from "../src/avatar/avatar";
 
 describe("Character Select pant silhouette", () => {
   const avatar = (pants: "cargo" | "jeans" | "shorts") => builtIn({ ...defaults, pants, hat:"none", backpack:"none" });
-  it("cargo and jeans have a wider leg silhouette than shorts", () => {
-    const short = avatar("shorts");
-    const shortsThigh = short.getObjectByName("THIGH") as THREE.Mesh;
-    const shortWidth = new THREE.Box3().setFromObject(shortsThigh).getSize(new THREE.Vector3()).x;
-    for (const pants of ["cargo", "jeans"] as const) {
-      const model = avatar(pants);
+  it("matches the user's Character Select 2 cargo and jeans radii", () => {
+    const cargo = avatar("cargo"), jeans = avatar("jeans"), shorts = avatar("shorts");
+    const radii = (model: THREE.Group) => {
       const thigh = model.getObjectByName("THIGH") as THREE.Mesh;
-      const width = new THREE.Box3().setFromObject(thigh).getSize(new THREE.Vector3()).x;
-      expect(width).toBeGreaterThan(shortWidth + 0.04);
-      const left = model.getObjectByName("LEFT_UPPER_LEG")!;
-      const right = model.getObjectByName("RIGHT_UPPER_LEG")!;
-      expect(left.position.x).toBeLessThan(0);
-      expect(right.position.x).toBeGreaterThan(0);
-      expect(right.position.x - left.position.x).toBeGreaterThan(0.4);
+      const shin = model.getObjectByName("SHIN") as THREE.Mesh;
+      return {
+        thigh: (thigh.geometry as THREE.CylinderGeometry).parameters,
+        shin: (shin.geometry as THREE.CylinderGeometry).parameters,
+        hip: model.getObjectByName("RIGHT_UPPER_LEG")!.position.x
+      };
+    };
+    expect(radii(cargo).thigh.radiusTop).toBeCloseTo(0.13);
+    expect(radii(cargo).thigh.radiusBottom).toBeCloseTo(0.19 * 1.15);
+    expect(radii(jeans).thigh.radiusBottom).toBeCloseTo(0.19 * 0.85);
+    expect(radii(cargo).shin.radiusTop).toBeCloseTo(0.19 * 1.15);
+    expect(radii(jeans).shin.radiusTop).toBeCloseTo(0.19 * 0.85);
+    for (const model of [cargo, jeans, shorts]) {
+      expect(radii(model).hip).toBeCloseTo(0.15);
     }
   });
   it("wide pants preserve floor contact and articulated joints", () => {
