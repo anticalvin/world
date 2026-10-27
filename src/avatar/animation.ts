@@ -51,7 +51,8 @@ export class AvatarAnimator {
       for (const side of ["LEFT", "RIGHT"]) {
         const sign = side === "LEFT" ? 1 : -1;
         this.root.getObjectByName(`${side}_UPPER_ARM`)!.rotation.x =
-          sign * swing;
+          sign * swing * 0.45;
+        this.root.getObjectByName(`${side}_UPPER_ARM`)!.rotation.z = side === "LEFT" ? -0.08 : 0.08;
         this.root.getObjectByName(`${side}_UPPER_LEG`)!.rotation.x =
           -sign * swing;
       }
