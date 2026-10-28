@@ -50,16 +50,23 @@ test("two real browser clients meet, move, chat, disconnect and reconnect", asyn
     )
     .toBe(4);
   const before = await beta.evaluate(
-    () => (window as any).__AWAKEN_DEBUG?.remotePosition?.z,
+    () => (window as any).__AWAKEN_DEBUG?.remotePosition,
   );
+  // Movement can be along X or Z depending on camera heading. Keep moving
+  // until a server-authoritative position update arrives, then release W.
   await alpha.keyboard.down("KeyW");
-  await alpha.waitForTimeout(550);
-  await alpha.keyboard.up("KeyW");
-  await expect
-    .poll(() =>
-      beta.evaluate(() => (window as any).__AWAKEN_DEBUG?.remotePosition?.z),
-    )
-    .not.toBe(before);
+  try {
+    await expect.poll(async () => {
+      const after = await beta.evaluate(
+        () => (window as any).__AWAKEN_DEBUG?.remotePosition,
+      );
+      return after && before
+        ? Math.hypot(after.x - before.x, after.z - before.z)
+        : 0;
+    }, { timeout: 12000 }).toBeGreaterThan(0.05);
+  } finally {
+    await alpha.keyboard.up("KeyW");
+  }
   await alpha.locator("#chat-toggle").click();
   await beta.locator("#chat-toggle").click();
   await alpha.getByRole("textbox", { name: "Lounge chat" }).fill("hello beta");
