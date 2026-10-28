@@ -38,16 +38,17 @@ test("two real browser clients meet, move, chat, disconnect and reconnect", asyn
       "CONNECTED · LIVE LOUNGE",
     );
   }
+  // Three ambient NPCs plus one remote human are visible per client.
   await expect
     .poll(() =>
       alpha.evaluate(() => (window as any).__AWAKEN_DEBUG?.remoteCount),
     )
-    .toBe(1);
+    .toBe(4);
   await expect
     .poll(() =>
       beta.evaluate(() => (window as any).__AWAKEN_DEBUG?.remoteCount),
     )
-    .toBe(1);
+    .toBe(4);
   const before = await beta.evaluate(
     () => (window as any).__AWAKEN_DEBUG?.remotePosition?.z,
   );
@@ -70,7 +71,7 @@ test("two real browser clients meet, move, chat, disconnect and reconnect", asyn
     .poll(() =>
       beta.evaluate(() => (window as any).__AWAKEN_DEBUG?.remoteCount),
     )
-    .toBe(0);
+    .toBe(3);
   const alphaAgain = await first.newPage();
   await alphaAgain.goto("/");
   await expect(alphaAgain.getByRole("button", { name: "JACK IN" })).toBeEnabled({ timeout: 20000 });
@@ -79,7 +80,7 @@ test("two real browser clients meet, move, chat, disconnect and reconnect", asyn
     .poll(() =>
       beta.evaluate(() => (window as any).__AWAKEN_DEBUG?.remoteCount),
     )
-    .toBe(1);
+    .toBe(4);
   await first.close();
   await second.close();
 });
