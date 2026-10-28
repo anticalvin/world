@@ -9,10 +9,10 @@ describe("full-scene bitmap rendering", () => {
     expect(pixelRenderSize(1280, 800)).toEqual({ width: 427, height: 267 });
     expect(pixelRenderSize(0, 0)).toEqual({ width: 1, height: 1 });
   });
-  it("pixelates the single WebGL canvas containing the world and all avatars", () => {
-    expect(mainSource).toContain("image-rendering:pixelated");
-    expect(mainSource).toContain("r.setSize(pixels.width, pixels.height, false)");
-    expect(mainSource).toContain("r.setPixelRatio(1)");
+  it("restores a full-size canvas until a safe postprocess pass is implemented", () => {
+    expect(mainSource).not.toContain("image-rendering:pixelated");
+    expect(mainSource).toContain("r.setSize(w, h, false)");
+    expect(mainSource).toContain("r.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5))");
     expect(mainSource).not.toContain("class=\"scan\"");
   });
 });
