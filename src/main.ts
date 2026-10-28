@@ -129,7 +129,7 @@ bitmapButton.className = "btn";
 bitmapButton.type = "button";
 bitmapButton.textContent = "🎨 BITMAP";
 bitmapButton.style.cssText = "position:absolute;top:58px;right:0;pointer-events:auto;min-height:42px";
-bitmapButton.onclick = () => bitmapStudio.open(() => hero.state.position.clone());
+bitmapButton.onclick = () => bitmapStudio.open(() => new T.Vector3(hero.state.position.x, hero.state.position.y, hero.state.position.z));
 hud.append(bitmapButton);
 
 const boxer = createBoxer();

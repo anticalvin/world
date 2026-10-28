@@ -1,17 +1,16 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
+import worldSource from "../src/worlds/scenes.ts?raw";
+import pixelSource from "../src/render/world-pixels.ts?raw";
+import htmlSource from "../index.html?raw";
 
 describe("pixel-art world renderer", () => {
-  it("does not use a full-screen CRT scanline overlay", () => {
-    const html = readFileSync("index.html", "utf8");
-    expect(html).not.toContain('class="scan"');
-    expect(html).not.toContain("repeating-linear-gradient");
+  it("removes the fake CRT scanline overlay", () => {
+    expect(htmlSource).not.toContain('class="scan"');
+    expect(htmlSource).not.toContain("repeating-linear-gradient");
   });
-  it("maps procedural bitmap patterns onto the scene's 3D materials", () => {
-    const scene = readFileSync("src/worlds/scenes.ts", "utf8");
-    expect(scene).toContain("map:pixelTexture(c,surface)");
-    const textures = readFileSync("src/render/world-pixels.ts", "utf8");
-    expect(textures).toContain("canvas.width = canvas.height = 32");
-    expect(textures).toContain("configureBitmapTexture");
+  it("maps procedural 32px bitmap textures onto 3D materials", () => {
+    expect(worldSource).toContain("map:pixelTexture(c,surface)");
+    expect(pixelSource).toContain("canvas.width = canvas.height = 32");
+    expect(pixelSource).toContain("configureBitmapTexture");
   });
 });
