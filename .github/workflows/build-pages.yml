@@ -43,6 +43,12 @@ jobs:
         run: npm run build
       - name: Unit tests
         run: npm test
+      - name: Guard published HTML against legacy scanlines
+        run: |
+          if grep -qE 'class="scan"|repeating-linear-gradient' docs/index.html; then
+            echo "ERROR: Built Pages HTML still contains the legacy scanline overlay"
+            exit 1
+          fi
       - name: Identify the deployed source revision
         run: |
           printf '{"sourceCommit":"%s","builtAt":"%s"}\n' "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > docs/version.json
