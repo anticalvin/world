@@ -1,3 +1,4 @@
+import { applyForwardPunch } from "./game/punch-pose";
 import { mountCharacterStudio } from "./avatar/character-studio";
 import { createBoxer, tickBoxer, punch, ringPosition, type Hand } from "./game/boxing";
 import { clampLoungeXZ, FALL_RESPAWN_Y } from "./sdk/lounge-bounds";
@@ -124,12 +125,12 @@ const boxer = createBoxer();
 let lastPunch: Hand | null = null;
 let punchUntil = 0;
 const fightControls = document.createElement("div");
-fightControls.style.cssText = "display:none;position:absolute;right:12px;bottom:172px;gap:8px;pointer-events:auto";
+fightControls.style.cssText = "display:none;position:absolute;right:12px;bottom:172px;gap:8px;pointer-events:auto;touch-action:manipulation";
 for (const hand of ["left","right"] as const) {
   const b = document.createElement("button");
-  b.className = "btn"; b.textContent = hand === "left" ? "LEFT JAB" : "RIGHT CROSS";
-  b.style.cssText = "min-width:84px;min-height:56px;font-weight:bold";
-  b.onclick = () => strike(hand);
+  b.className = "btn"; b.textContent = hand === "left" ? "LEFT PUNCH" : "RIGHT PUNCH";
+  b.style.cssText = "min-width:84px;min-height:56px;font-weight:bold;touch-action:manipulation";
+  b.addEventListener("pointerdown", (event) => { event.preventDefault(); strike(hand); });
   fightControls.append(b);
 }
 hud.append(fightControls);
@@ -139,7 +140,7 @@ function strike(hand: Hand) {
   if (!hit.landed) return;
   lastPunch = hand;
   punchUntil = performance.now() + (hand === "left" ? 160 : 260);
-  note = (hand === "left" ? "LEFT JAB" : "RIGHT CROSS") + " · STAMINA " + Math.round(boxer.stamina) + " · SOLO TRAINING";
+  note = (hand === "left" ? "LEFT PUNCH" : "RIGHT PUNCH") + " · STAMINA " + Math.round(boxer.stamina) + " · SOLO TRAINING";
 }
 const buildMark = document.createElement("small");
 buildMark.textContent = "AWAKEN · BUILD 2026-10-27-B";
@@ -685,8 +686,8 @@ function loop(now: number) {
     an.update(hero.state, dt);
     if (w.id === "delta-9" && lastPunch) {
       const arm = model.getObjectByName(lastPunch === "left" ? "LEFT_UPPER_ARM" : "RIGHT_UPPER_ARM");
-      if (arm && performance.now() < punchUntil) arm.rotation.x = -1.05;
-      else lastPunch = null;
+      if (arm && performance.now() < punchUntil) applyForwardPunch(arm, lastPunch);
+      else { if (arm) { arm.rotation.y = 0; arm.rotation.z = 0; const elbow = arm.getObjectByName((lastPunch === "left" ? "LEFT" : "RIGHT") + "_LOWER_ARM"); if (elbow) elbow.rotation.x = 0; } lastPunch = null; }
     }
     follow(hero.state.position, dt);
     game();
