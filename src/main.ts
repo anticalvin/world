@@ -1,3 +1,4 @@
+import { mountBitmapStudio } from "./studio/bitmap-studio";
 import { applyForwardPunch } from "./game/punch-pose";
 import { mountCharacterStudio } from "./avatar/character-studio";
 import { createBoxer, tickBoxer, punch, ringPosition, type Hand } from "./game/boxing";
@@ -121,6 +122,16 @@ hud.className = "ui hud";
 hud.innerHTML =
   '<div class="top"><div class="panel" id="where"></div><button class="btn" id="view">VIEW: 3RD</button><button class="btn" id="menu" aria-label="Return to main menu">MENU</button></div><div class="panel hint" id="notice"></div><div id="touch" style="display:none"><div id="stick" style="position:absolute;left:18px;bottom:20px;width:112px;height:112px;border:2px solid #35f0ff;border-radius:50%;background:#0d061488;touch-action:none;pointer-events:auto"><div id="nub" style="position:absolute;left:33px;top:33px;width:42px;height:42px;border-radius:50%;background:#ff2e9a;border:2px solid white"></div></div><div style="position:absolute;right:12px;bottom:18px;display:flex;gap:6px;flex-wrap:wrap;width:160px;pointer-events:auto"><button style="min-width:72px;min-height:48px;color:#f5e9ff;background:#2a0f4d;border:2px solid #ff2e9a;font:inherit" id="run">RUN</button><button style="min-width:72px;min-height:48px;color:#f5e9ff;background:#2a0f4d;border:2px solid #ff2e9a;font:inherit" id="mjump">JUMP</button><button style="min-width:72px;min-height:48px;color:#f5e9ff;background:#2a0f4d;border:2px solid #ff2e9a;font:inherit" id="mslide">SLIDE</button><button style="min-width:72px;min-height:48px;color:#f5e9ff;background:#2a0f4d;border:2px solid #ff2e9a;font:inherit" id="mview">VIEW</button></div></div>';
 app.append(boot, hud);
+const bitmapStudio = mountBitmapStudio(s, app);
+const bitmapButton = document.createElement("button");
+bitmapButton.id = "bitmap-open";
+bitmapButton.className = "btn";
+bitmapButton.type = "button";
+bitmapButton.textContent = "🎨 BITMAP";
+bitmapButton.style.cssText = "position:absolute;top:58px;right:0;pointer-events:auto;min-height:42px";
+bitmapButton.onclick = () => bitmapStudio.open(() => hero.state.position.clone());
+hud.append(bitmapButton);
+
 const boxer = createBoxer();
 let lastPunch: Hand | null = null;
 let punchUntil = 0;
@@ -448,6 +459,8 @@ function start(x: WorldManifest, spawn?: string) {
   if (!validateManifest(x)) throw Error("Invalid manifest");
   if (!physicsReady) return;
   active = true;
+  bitmapStudio.close();
+  bitmapStudio.setWorldVisible(x.id === "awaken-lounge");
   boot.style.display = "none";
   hud.style.display = "block";
   stickReset();
