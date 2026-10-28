@@ -14,14 +14,14 @@ test("RAW PIXEL CITY is reachable and returns to AWAKEN without losing controls"
   await page.getByRole("button", { name: "Return to AWAKEN Lounge" }).click();
   await expect(overlay).toHaveCount(0);
   await expect(page.locator("#where")).toContainText("AWAKEN Lounge");
-  await expect(page.locator("#mjump")).toBeVisible();
+  await expect(page.locator("#view")).toBeVisible();
 });
 
 test("city source retains original renderer, character creator and shader", async ({ request }) => {
   const response = await request.get("/raw-pixel-city.html");
   expect(response.ok()).toBe(true);
   const html = await response.text();
-  expect(html).toContain("NEW GAME");
+  expect(html).toContain("AWAKEN · RAW PIXEL CITY");
   expect(html).toContain("CKmk");
   expect(html).toContain("WebGLRenderTarget");
   expect(html).toContain("ShaderMaterial");
