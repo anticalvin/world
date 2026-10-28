@@ -92,6 +92,7 @@ export function mountBitmapStudio(scene: THREE.Scene, host: HTMLElement) {
   makeButton("PLACE CUBE", () => {
     localStorage.setItem(KEY, JSON.stringify(pixels));
     prop.visible = true;
+    prop.userData.placed = true;
     const position = getPosition();
     prop.position.set(position.x + 2, position.y + 1, position.z - 2);
     close();
