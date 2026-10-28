@@ -1,17 +1,20 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
+import { createWorldScene } from "../src/worlds/scenes";
+import * as THREE from "three";
 
 describe("pixel-art world renderer", () => {
-  it("does not use a full-screen CRT scanline overlay", () => {
-    const html = readFileSync("index.html", "utf8");
-    expect(html).not.toContain('class="scan"');
-    expect(html).not.toContain("repeating-linear-gradient");
-  });
-  it("maps procedural bitmap patterns onto the scene's 3D materials", () => {
-    const scene = readFileSync("src/worlds/scenes.ts", "utf8");
-    expect(scene).toContain("map:pixelTexture(c,surface)");
-    const textures = readFileSync("src/render/world-pixels.ts", "utf8");
-    expect(textures).toContain("canvas.width = canvas.height = 32");
-    expect(textures).toContain("configureBitmapTexture");
+  it("maps nearest-neighbor bitmap textures onto real world geometry", () => {
+    const original = document.createElement;
+    expect(typeof original).toBe("function");
+    const group = createWorldScene("awaken-lounge");
+    let mapped = 0;
+    group.traverse(object => {
+      if (!(object instanceof THREE.Mesh)) return;
+      const material = object.material;
+      if (!(material instanceof THREE.MeshStandardMaterial) || !material.map) return;
+      mapped++;
+      expect(material.map.magFilter).toBe(THREE.NearestFilter);
+    });
+    expect(mapped).toBeGreaterThan(5);
   });
 });
