@@ -1,3 +1,4 @@
+import { loungeNpcs } from "./npc.mjs";
 import { LOUNGE_WALKABLE_RADIUS } from "../src/sdk/lounge-bounds.mjs";
 import { createServer } from "node:http";
 import { Server, Room } from "colyseus";
@@ -83,6 +84,8 @@ class LoungeRoom extends Room {
     this.setState(new LoungeState());
     this.inputs = new Map();
     this.chatAt = new Map();
+    this.npcEpoch = Date.now();
+    this.lastNpcBroadcast = 0;
     this.onMessage("input", (client, message) => {
       const now = Date.now();
       const last = this.inputs.get(client.sessionId)?.at || 0;
@@ -163,6 +166,13 @@ class LoungeRoom extends Room {
     this.broadcast("remove", { id: client.sessionId });
   }
   simulate(delta) {
+    // NPC positions derive from server time, never from untrusted client input.
+    const now = Date.now();
+    if (now - this.lastNpcBroadcast >= 100) {
+      this.lastNpcBroadcast = now;
+      for (const npc of loungeNpcs((now - this.npcEpoch) / 1000))
+        this.broadcast("player", npc);
+    }
     const seconds = Math.min(delta / 1000, 1 / 30);
     for (const [id, player] of this.state.players) {
       const input = this.inputs.get(id);
@@ -199,7 +209,7 @@ class LoungeRoom extends Room {
     }
   }
   players() {
-    return Array.from(this.state.players, ([id, player]) => ({
+    const humans = Array.from(this.state.players, ([id, player]) => ({
       id,
       name: player.name,
       style: player.style,
@@ -208,6 +218,7 @@ class LoungeRoom extends Room {
       z: player.z,
       yaw: player.yaw,
     }));
+    return [...humans, ...loungeNpcs((Date.now() - this.npcEpoch) / 1000)];
   }
 }
 

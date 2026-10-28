@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "vitest run tests",
     "test:browser": "playwright test",
     "benchmark": "node scripts/benchmark.mjs",
     "server": "npm --prefix server start"

@@ -3,7 +3,11 @@
   "private": true,
   "type": "module",
   "version": "0.1.0",
-  "scripts": { "dev": "node index.mjs", "start": "node index.mjs" },
+  "scripts": {
+    "dev": "node index.mjs",
+    "start": "node index.mjs",
+    "test": "node --test npc.test.mjs"
+  },
   "dependencies": {
     "@colyseus/schema": "3.0.76",
     "colyseus": "0.16.5"
