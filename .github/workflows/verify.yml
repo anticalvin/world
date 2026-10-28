@@ -34,6 +34,8 @@ jobs:
         run: npm run build
       - name: Unit tests
         run: npm test
+      - name: Server NPC tests
+        run: npm --prefix server test
       - name: Browser tests (desktop and 390x844 mobile)
         run: npm run test:browser
       - name: Upload browser diagnostics on failure
