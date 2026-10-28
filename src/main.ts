@@ -1,3 +1,4 @@
+import { pixelRenderSize } from "./render/pixel-screen";
 import { mountBitmapStudio } from "./studio/bitmap-studio";
 import { applyForwardPunch } from "./game/punch-pose";
 import { mountCharacterStudio } from "./avatar/character-studio";
@@ -53,9 +54,10 @@ const app = document.querySelector<HTMLDivElement>("#app")!,
   av = new T.Group(),
   keys = new Set<string>(),
   ray = new T.Raycaster();
-r.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+// Render all 3D objects, including the avatar, at a shared pixel-art resolution.
+r.setPixelRatio(1);
 r.domElement.style.cssText =
-  "position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;z-index:0";
+  "position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;z-index:0;image-rendering:pixelated";
 app.append(r.domElement);
 const sun = new T.DirectionalLight(0xbff4ff, 2.4);
 sun.position.set(-8, 14, 8);
@@ -105,7 +107,8 @@ function resize() {
   const v = visualViewport,
     w = Math.max(1, Math.round(v?.width || innerWidth)),
     h = Math.max(1, Math.round(v?.height || innerHeight));
-  r.setSize(w, h, false);
+  const pixels = pixelRenderSize(w, h);
+  r.setSize(pixels.width, pixels.height, false);
   r.domElement.style.width = `${w}px`;
   r.domElement.style.height = `${h}px`;
   cam.aspect = w / h;
