@@ -326,7 +326,7 @@ function upsertRemote(p: LoungePlayer) {
     (window as any).__AWAKEN_DEBUG = {
       ...(window as any).__AWAKEN_DEBUG,
       remoteCount: remotes.size,
-      remotePosition: { x: p.x, z: p.z },
+      ...(!p.npc ? { remotePosition: { x: p.x, z: p.z } } : {}),
     };
 }
 function removeRemote(id: string) {

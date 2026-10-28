@@ -8,6 +8,7 @@ export type LoungeProfile = {
 };
 export type LoungePlayer = LoungeProfile & {
   id: string;
+  npc?: boolean;
   x: number;
   z: number;
   yaw: number;
