@@ -458,7 +458,64 @@ function art(x: WorldManifest) {
     objects.push(o);
   }
 }
+let rawCityOverlay: HTMLDivElement | null = null;
+/** The creator's original city runs as a complete isolated world, preserving its own
+ * shader pipeline and character creator without destabilizing AWAKEN's renderer. */
+function closeRawPixelCity() {
+  rawCityOverlay?.remove();
+  rawCityOverlay = null;
+  r.domElement.style.display = "block";
+}
+function openRawPixelCity() {
+  closeRawPixelCity();
+  active = false;
+  keys.clear();
+  stickReset();
+  mobileRun = false;
+  lounge.disconnect();
+  loungeId = "";
+  clearRemotes();
+  bitmapStudio.close();
+  bitmapStudio.setWorldVisible(false);
+  toggleChat(false);
+  chatToggle.style.display = "none";
+  chatPanel.style.display = "none";
+  fightControls.style.display = "none";
+  hud.style.display = "none";
+  boot.style.display = "none";
+  r.domElement.style.display = "none";
+  const overlay = document.createElement("div");
+  overlay.id = "raw-pixel-city-world";
+  overlay.setAttribute("role", "region");
+  overlay.setAttribute("aria-label", "RAW PIXEL CITY world");
+  overlay.style.cssText = "position:fixed;inset:0;z-index:1000;background:#050a5a";
+  const frame = document.createElement("iframe");
+  frame.id = "raw-pixel-city-frame";
+  frame.title = "RAW PIXEL CITY game and character creator";
+  frame.src = new URL("raw-pixel-city.html", document.baseURI).href;
+  frame.allow = "fullscreen";
+  frame.style.cssText = "position:absolute;inset:0;width:100%;height:100%;border:0";
+  const back = document.createElement("button");
+  back.id = "raw-city-return";
+  back.type = "button";
+  back.textContent = "← AWAKEN";
+  back.setAttribute("aria-label", "Return to AWAKEN Lounge");
+  back.style.cssText = "position:absolute;z-index:2;left:max(10px,env(safe-area-inset-left));top:max(10px,env(safe-area-inset-top));padding:10px 14px;background:#1022d6;color:#f2d84a;border:2px solid #f2d84a;font:700 14px monospace;cursor:pointer;touch-action:manipulation";
+  back.onclick = () => {
+    closeRawPixelCity();
+    w = worlds[0];
+    start(w, "arrival");
+  };
+  overlay.append(frame, back);
+  app.append(overlay);
+  rawCityOverlay = overlay;
+}
 function start(x: WorldManifest, spawn?: string) {
+  if (x.id === "raw-pixel-city") {
+    openRawPixelCity();
+    return;
+  }
+  closeRawPixelCity();
   if (!validateManifest(x)) throw Error("Invalid manifest");
   if (!physicsReady) return;
   active = true;
